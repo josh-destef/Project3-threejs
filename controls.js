@@ -1,4 +1,4 @@
-// controls.js — 3D arrow mesh tilt + drag-to-orbit (no HTML buttons)
+// controls.js — 3D arrow mesh tilt + drag-to-orbit + Keyboard support
 
 import * as THREE from 'three';
 
@@ -7,6 +7,7 @@ const HOVER_COLOR  = 0xffaa55;
 
 export function initControls(scene, board, camera, boardCX, boardCZ) {
   const RIM_OFFSET = boardCX + 4;
+  
   // ── Tilt hold state ─────────────────────────────────────────────────────
   const tilt = { up: false, down: false, left: false, right: false };
 
@@ -26,10 +27,10 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
     return mesh;
   }
 
-  const topArrow    = makeArrow(boardCX,            0.5, boardCZ - RIM_OFFSET, -Math.PI / 2,  undefined);
-  const bottomArrow = makeArrow(boardCX,            0.5, boardCZ + RIM_OFFSET,  Math.PI / 2,  undefined);
-  const leftArrow   = makeArrow(boardCX - RIM_OFFSET, 0.5, boardCZ,            undefined,  Math.PI / 2);
-  const rightArrow  = makeArrow(boardCX + RIM_OFFSET, 0.5, boardCZ,            undefined, -Math.PI / 2);
+  const topArrow    = makeArrow(boardCX,             0.5, boardCZ - RIM_OFFSET, -Math.PI / 2,  undefined);
+  const bottomArrow = makeArrow(boardCX,             0.5, boardCZ + RIM_OFFSET,  Math.PI / 2,  undefined);
+  const leftArrow   = makeArrow(boardCX - RIM_OFFSET, 0.5, boardCZ,             undefined,  Math.PI / 2);
+  const rightArrow  = makeArrow(boardCX + RIM_OFFSET, 0.5, boardCZ,             undefined, -Math.PI / 2);
 
   const arrows     = [topArrow, bottomArrow, leftArrow, rightArrow];
   const arrowTilts = [  'up',      'down',    'left',    'right'   ];
@@ -64,13 +65,33 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
     });
   }
 
+  // ── Keyboard Events ─────────────────────────────────────────────────────
+  const keyMap = {
+    'ArrowUp':    'up',    'KeyW': 'up',
+    'ArrowDown':  'down',  'KeyS': 'down',
+    'ArrowLeft':  'left',  'KeyA': 'left',
+    'ArrowRight': 'right', 'KeyD': 'right'
+  };
+
+  window.addEventListener('keydown', (e) => {
+    const direction = keyMap[e.code];
+    if (direction) tilt[direction] = true;
+  });
+
+  window.addEventListener('keyup', (e) => {
+    const direction = keyMap[e.code];
+    if (direction) tilt[direction] = false;
+  });
+
   // ── Mouse events ────────────────────────────────────────────────────────
   const SENS = 0.005;
   let dragging = false, dragX = 0, dragY = 0;
+  let activeClickArrow = null; // Track which arrow was clicked to release it specifically
 
   canvas.addEventListener('mousedown', (e) => {
     const hit = getArrowHit(e.clientX, e.clientY);
     if (hit) {
+      activeClickArrow = hit;
       setTilt(hit, true);
     } else {
       dragging = true; dragX = e.clientX; dragY = e.clientY;
@@ -87,22 +108,32 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
 
   window.addEventListener('mouseup', () => {
     dragging = false;
-    clearTilts();
+    if (activeClickArrow) {
+        setTilt(activeClickArrow, false);
+        activeClickArrow = null;
+    }
   });
 
   canvas.addEventListener('mouseleave', () => {
     dragging = false;
-    clearTilts();
+    // Don't clearTilts() entirely here or keys will stop working when mouse leaves canvas
+    if (activeClickArrow) {
+        setTilt(activeClickArrow, false);
+        activeClickArrow = null;
+    }
     arrows.forEach(a => a.material.color.setHex(BASE_COLOR));
   });
 
   // ── Touch events ────────────────────────────────────────────────────────
+  let activeTouchArrow = null;
+
   canvas.addEventListener('touchstart', (e) => {
     if (e.touches.length !== 1) return;
     const t = e.touches[0];
     const hit = getArrowHit(t.clientX, t.clientY);
     if (hit) {
       e.preventDefault();
+      activeTouchArrow = hit;
       setTilt(hit, true);
     } else {
       dragging = true; dragX = t.clientX; dragY = t.clientY;
@@ -122,11 +153,10 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
 
   canvas.addEventListener('touchend', () => {
     dragging = false;
-    clearTilts();
-  });
-  canvas.addEventListener('touchcancel', () => {
-    dragging = false;
-    clearTilts();
+    if (activeTouchArrow) {
+        setTilt(activeTouchArrow, false);
+        activeTouchArrow = null;
+    }
   });
 
   return { tilt, orbit };
