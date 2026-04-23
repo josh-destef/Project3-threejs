@@ -46,3 +46,38 @@ canvas { display: block; width: 100vw; height: 100vh; }
 }
 #win-screen button:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ff99; }
 
+/* ── Menu ───────────────────────────────────────────────────────────────── */
+#menu {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(12px);
+  font-family: monospace; color: white; z-index: 100;
+}
+.menu-content {
+  background: rgba(20, 20, 20, 0.8);
+  padding: 40px; border: 1px solid rgba(232, 135, 58, 0.3);
+  border-radius: 8px; width: 450px;
+  display: flex; flex-direction: column; gap: 30px;
+}
+.menu-content h1 {
+  font-size: 1.2rem; color: #e8873a;
+  letter-spacing: 0.2em; margin-bottom: 10px;
+  border-bottom: 1px solid rgba(232, 135, 58, 0.2);
+  padding-bottom: 10px;
+}
+.menu-options { display: flex; flex-direction: column; gap: 20px; }
+.option { display: flex; justify-content: space-between; align-items: center; }
+.option label { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.1em; }
+.option select {
+  background: #111; color: #fff; border: 1px solid #333;
+  padding: 6px 12px; font-family: monospace; outline: none;
+  cursor: pointer; width: 180px;
+}
+#start-btn {
+  background: #e8873a; color: #000;
+  border: none; padding: 14px; font-family: monospace;
+  font-weight: bold; font-size: 1rem; cursor: pointer;
+  letter-spacing: 0.15em; transition: 0.2s;
+}
+#start-btn:hover { background: #ffaa55; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(232, 135, 58, 0.4); }
+

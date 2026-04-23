@@ -1,4 +1,4 @@
-// maze.js — recursive backtracker maze generation
+// maze.js — Recursive Backtracker maze generation
 
 export function generateMaze(cols, rows) {
   // Build grid of cells, all walls solid, none visited
@@ -7,6 +7,7 @@ export function generateMaze(cols, rows) {
     grid[r] = [];
     for (let c = 0; c < cols; c++) {
       grid[r][c] = {
+        r, c,
         visited: false,
         walls: { top: true, right: true, bottom: true, left: true },
       };
@@ -21,7 +22,6 @@ export function generateMaze(cols, rows) {
     return arr;
   }
 
-  // Neighbour direction helpers
   const DIRS = [
     { dr: -1, dc: 0, wall: 'top',    opposite: 'bottom' },
     { dr:  0, dc: 1, wall: 'right',  opposite: 'left'   },
@@ -33,10 +33,8 @@ export function generateMaze(cols, rows) {
     grid[r][c].visited = true;
     const dirs = shuffle([...DIRS]);
     for (const { dr, dc, wall, opposite } of dirs) {
-      const nr = r + dr;
-      const nc = c + dc;
+      const nr = r + dr, nc = c + dc;
       if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && !grid[nr][nc].visited) {
-        // Remove the wall between current cell and neighbour
         grid[r][c].walls[wall] = false;
         grid[nr][nc].walls[opposite] = false;
         carve(nr, nc);

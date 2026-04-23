@@ -32,20 +32,19 @@ export function initHUD() {
 
   function startTimer() {
     startTime = Date.now();
+    timerEl.textContent = '00:00';
     interval = setInterval(() => { elapsed = Math.floor((Date.now()-startTime)/1000); timerEl.textContent = fmt(elapsed); }, 500);
   }
   function stopTimer() {
     clearInterval(interval);
-    elapsed = Math.floor((Date.now()-startTime)/1000);
-    timerEl.textContent = fmt(elapsed);
   }
 
   // Minimap
-  function updateMinimap(grid, ballPos) {
-    const S = 160, cw = S/COLS, ch = S/ROWS;
+  function updateMinimap(grid, ballPos, cols, rows) {
+    const S = 160, cw = S/cols, ch = S/rows;
     ctx.clearRect(0,0,S,S);
-    for (let r=0;r<ROWS;r++) {
-      for (let c=0;c<COLS;c++) {
+    for (let r=0;r<rows;r++) {
+      for (let c=0;c<cols;c++) {
         const cell = grid[r][c], x=c*cw, y=r*ch;
         ctx.fillStyle='#2a1f0f'; ctx.fillRect(x,y,cw,ch);
         ctx.strokeStyle='#c8a46e'; ctx.lineWidth=1;
@@ -57,7 +56,7 @@ export function initHUD() {
     }
     // Exit
     ctx.fillStyle='#00cc44';
-    ctx.beginPath(); ctx.arc((COLS-1)*cw+cw/2,(ROWS-1)*ch+ch/2,Math.min(cw,ch)*0.35,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc((cols-1)*cw+cw/2,(rows-1)*ch+ch/2,Math.min(cw,ch)*0.35,0,Math.PI*2); ctx.fill();
     // Ball
     if (ballPos) {
       ctx.fillStyle='#ffffff';
@@ -70,5 +69,9 @@ export function initHUD() {
     document.getElementById('win-time').textContent = `Time: ${timerEl.textContent}`;
   }
 
-  return { startTimer, stopTimer, updateMinimap, showWin };
+  function hideMenu() {
+    document.getElementById('menu').style.display = 'none';
+  }
+
+  return { startTimer, stopTimer, updateMinimap, showWin, hideMenu };
 }

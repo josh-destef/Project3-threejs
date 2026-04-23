@@ -11,8 +11,8 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
   // ── Tilt hold state ─────────────────────────────────────────────────────
   const tilt = { up: false, down: false, left: false, right: false };
 
-  // ── Orbit drag state ────────────────────────────────────────────────────
-  const orbit = { deltaTheta: 0, deltaPhi: 0 };
+  // ── Orbit & Zoom state ──────────────────────────────────────────────────
+  const orbit = { deltaTheta: 0, deltaPhi: 0, deltaZoom: 0 };
 
   // ── 3D Arrow meshes ─────────────────────────────────────────────────────
   const arrowGeo = new THREE.ConeGeometry(2, 3.5, 3);
@@ -85,8 +85,14 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
 
   // ── Mouse events ────────────────────────────────────────────────────────
   const SENS = 0.005;
+  const ZOOM_SENS = 0.05;
   let dragging = false, dragX = 0, dragY = 0;
-  let activeClickArrow = null; // Track which arrow was clicked to release it specifically
+  let activeClickArrow = null;
+
+  canvas.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    orbit.deltaZoom += e.deltaY * ZOOM_SENS;
+  }, { passive: false });
 
   canvas.addEventListener('mousedown', (e) => {
     const hit = getArrowHit(e.clientX, e.clientY);
@@ -116,7 +122,6 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
 
   canvas.addEventListener('mouseleave', () => {
     dragging = false;
-    // Don't clearTilts() entirely here or keys will stop working when mouse leaves canvas
     if (activeClickArrow) {
         setTilt(activeClickArrow, false);
         activeClickArrow = null;
@@ -126,8 +131,16 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
 
   // ── Touch events ────────────────────────────────────────────────────────
   let activeTouchArrow = null;
+  let initialPinchDist = null;
 
   canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 2) {
+      initialPinchDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      return;
+    }
     if (e.touches.length !== 1) return;
     const t = e.touches[0];
     const hit = getArrowHit(t.clientX, t.clientY);
@@ -141,6 +154,16 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
   }, { passive: false });
 
   canvas.addEventListener('touchmove', (e) => {
+    if (e.touches.length === 2 && initialPinchDist !== null) {
+      e.preventDefault();
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      orbit.deltaZoom += (initialPinchDist - dist) * 0.2;
+      initialPinchDist = dist;
+      return;
+    }
     if (e.touches.length !== 1) return;
     e.preventDefault();
     const t = e.touches[0];
@@ -151,7 +174,8 @@ export function initControls(scene, board, camera, boardCX, boardCZ) {
     }
   }, { passive: false });
 
-  canvas.addEventListener('touchend', () => {
+  canvas.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) initialPinchDist = null;
     dragging = false;
     if (activeTouchArrow) {
         setTilt(activeTouchArrow, false);
