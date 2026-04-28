@@ -23,11 +23,11 @@ export function createBall(scene, color = '#eeeeee') {
   const vel = { x: 0, z: 0 };
 
   // --- NEW: Power-Up Methods ---
-  
+
   function boostSpeed(duration = 10000) {
     currentMaxSpeed = DEFAULT_MAX_SPEED * 2.5; // Significant boost
     mesh.material.color.setHex(0xffaa00); // Visual cue: Orange glow
-    
+
     setTimeout(() => {
       currentMaxSpeed = DEFAULT_MAX_SPEED;
       mesh.material.color.setHex(0xeeeeee); // Reset color
@@ -64,9 +64,9 @@ export function createBall(scene, color = '#eeeeee') {
 
     const spd = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
     // Use currentMaxSpeed instead of the old constant
-    if (spd > currentMaxSpeed) { 
-      vel.x = vel.x / spd * currentMaxSpeed; 
-      vel.z = vel.z / spd * currentMaxSpeed; 
+    if (spd > currentMaxSpeed) {
+      vel.x = vel.x / spd * currentMaxSpeed;
+      vel.z = vel.z / spd * currentMaxSpeed;
     }
 
     // X axis collision
@@ -97,7 +97,7 @@ export function createBall(scene, color = '#eeeeee') {
   }
 
   function getPos() { return pos; }
-  
-  // Added boostSpeed, teleport, and reset to the returned object
+
+  // Added boostSpeed, teleport, and reset to the returned object 
   return { mesh, update, getPos, boostSpeed, teleport, reset };
 }
