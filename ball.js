@@ -7,10 +7,10 @@ const BALL_RADIUS = 0.5;
 const MAX_SPEED = 16;
 const FRICTION = 0.985;
 
-export function createBall(scene) {
+export function createBall(scene, color = '#eeeeee') {
   const mesh = new THREE.Mesh(
     new THREE.SphereGeometry(BALL_RADIUS, 16, 16),
-    new THREE.MeshLambertMaterial({ color: 0xeeeeee })
+    new THREE.MeshLambertMaterial({ color: color })
   );
   scene.add(mesh);
 

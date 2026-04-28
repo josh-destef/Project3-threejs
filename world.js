@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { COLS, ROWS, CELL, WALL_HEIGHT } from './main.js';
 
-export function buildScene(grid, exitX, exitZ) {
+export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x111111);
 
@@ -16,7 +16,7 @@ export function buildScene(grid, exitX, exitZ) {
   const board = new THREE.Group();
   scene.add(board);
 
-  const wallMat  = new THREE.MeshLambertMaterial({ color: 0xc8a46e });
+  const wallMat  = new THREE.MeshLambertMaterial({ color: mazeColor });
   const floorMat = new THREE.MeshLambertMaterial({ color: 0xb8935a });
 
   // ── Base plate ─────────────────────────────────────────────────────────

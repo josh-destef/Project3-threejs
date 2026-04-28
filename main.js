@@ -105,14 +105,14 @@ function initGame(config) {
   }
 
   grid = generateMaze(COLS, ROWS, config.algorithm);
-  const result = buildScene(grid, EXIT_X, EXIT_Z);
+  const result = buildScene(grid, EXIT_X, EXIT_Z, config.mazeColor);
   scene = result.scene;
   renderer = result.renderer;
   board = result.board;
   wallBoxes = result.wallBoxes;
   exitMesh = result.exitMesh;
 
-  ball = createBall(scene);
+  ball = createBall(scene, config.ballColor);
   const ctrlResult = initControls(scene, board, camera, BOARD_CX, BOARD_CZ);
   controls = ctrlResult.tilt;
   orbitInput = ctrlResult.orbit;
@@ -132,7 +132,9 @@ function initGame(config) {
 document.getElementById('start-btn').addEventListener('click', () => {
   initGame({
     size: document.getElementById('size-select').value,
-    goal: document.getElementById('goal-select').value
+    goal: document.getElementById('goal-select').value,
+    ballColor: document.getElementById('ball-color-select').value, 
+    mazeColor: document.getElementById('maze-color-select').value,
   });
 });
 
