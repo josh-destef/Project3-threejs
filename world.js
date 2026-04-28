@@ -124,20 +124,20 @@ export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
     emissiveIntensity: 0.8
   });
 
-  // Pick ~15% of cells randomly as hazards, never the start (0,0) or exit cell
+  // Pick cells randomly as hazards, never the start (0,0) or exit cell
   const exitCol = Math.floor(exitX / CELL);
   const exitRow = Math.floor(exitZ / CELL);
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       if (r === 0 && c === 0) continue;            // never spawn point
       if (r === exitRow && c === exitCol) continue; // never exit cell
-      if (Math.random() < 0.15) {
+      if (Math.random() < 0.05) {
         const hx = c * CELL + CELL / 2;
         const hz = r * CELL + CELL / 2;
 
         // Glowing floor tile
         const tile = new THREE.Mesh(
-          new THREE.PlaneGeometry(CELL - 0.3, CELL - 0.3),
+          new THREE.PlaneGeometry(1.2, 1.2),
           hazardMat
         );
         tile.rotation.x = -Math.PI / 2;

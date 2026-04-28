@@ -82,8 +82,10 @@ function animate() {
     for (const h of hazardPositions) {
       const dx = ballPos.x - h.x;
       const dz = ballPos.z - h.z;
-      if (Math.sqrt(dx * dx + dz * dz) < HAZARD_RADIUS) {
+      if (Math.sqrt(dx * dx + dz * dz) < 1.0) {
         ball.reset();
+        board.rotation.x = 0;
+        board.rotation.z = 0;
         break;
       }
     }
