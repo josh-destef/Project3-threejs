@@ -21,6 +21,14 @@ export function createBall(scene, color = '#eeeeee') {
   const pos = { x: CELL / 2, z: CELL / 2 };
   const vel = { x: 0, z: 0 };
 
+  // reset function snaps ball back to start with zero velocity ──
+  function reset() {
+    pos.x = CELL / 2;
+    pos.z = CELL / 2;
+    vel.x = 0;
+    vel.z = 0;
+  }
+
   function update(board, wallBoxes, delta) {
     const gravX = -board.rotation.z * 25;
     const gravZ = board.rotation.x * 25;
@@ -61,5 +69,5 @@ export function createBall(scene, color = '#eeeeee') {
   }
 
   function getPos() { return pos; }
-  return { mesh, update, getPos };
+  return { mesh, update, getPos, reset };
 }

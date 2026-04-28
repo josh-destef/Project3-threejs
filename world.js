@@ -116,7 +116,45 @@ export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
   exitLight.position.y += 1;
   board.add(exitLight);
 
+  // Hazard tiles — random floor cells glow red and reset ball ──
+  const hazardPositions = [];
+  const hazardMat = new THREE.MeshLambertMaterial({
+    color: 0xff2200,
+    emissive: new THREE.Color(0xff2200),  // ← glowing red
+    emissiveIntensity: 0.8
+  });
+
+  // Pick ~15% of cells randomly as hazards, never the start (0,0) or exit cell
+  const exitCol = Math.floor(exitX / CELL);
+  const exitRow = Math.floor(exitZ / CELL);
+  for (let r = 0; r < ROWS; r++) {
+    for (let c = 0; c < COLS; c++) {
+      if (r === 0 && c === 0) continue;            // never spawn point
+      if (r === exitRow && c === exitCol) continue; // never exit cell
+      if (Math.random() < 0.15) {
+        const hx = c * CELL + CELL / 2;
+        const hz = r * CELL + CELL / 2;
+
+        // Glowing floor tile
+        const tile = new THREE.Mesh(
+          new THREE.PlaneGeometry(CELL - 0.3, CELL - 0.3),
+          hazardMat
+        );
+        tile.rotation.x = -Math.PI / 2;
+        tile.position.set(hx, 0.02, hz);
+        board.add(tile);
+
+        // Red point light above each tile for glow effect
+        const hLight = new THREE.PointLight(0xff2200, 1.5, CELL * 2);
+        hLight.position.set(hx, 1.5, hz);
+        board.add(hLight);
+
+        hazardPositions.push({ x: hx, z: hz });
+      }
+    }
+  }
+
   window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
 
-  return { scene, renderer, board, wallBoxes, exitMesh };
+  return { scene, renderer, board, wallBoxes, exitMesh, hazardPositions};
 }

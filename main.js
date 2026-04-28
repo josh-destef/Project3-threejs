@@ -20,6 +20,10 @@ let controls, orbitInput;
 let won = false;
 const clock = new THREE.Clock();
 
+// store hazard positions so game loop can check them ───────────
+let hazardPositions = [];
+const HAZARD_RADIUS = 1.2;
+
 // ── Camera & HUD ──────────────────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 800);
 let orbitTheta = Math.PI * 0.15;
@@ -74,6 +78,16 @@ function animate() {
     updateMinimap(grid, ballPos, COLS, ROWS);
     exitMesh.rotation.y += 0.02;
 
+    // check if ball landed on any hazard tile ─────────────────
+    for (const h of hazardPositions) {
+      const dx = ballPos.x - h.x;
+      const dz = ballPos.z - h.z;
+      if (Math.sqrt(dx * dx + dz * dz) < HAZARD_RADIUS) {
+        ball.reset();
+        break;
+      }
+    }
+
     const dx = ballPos.x - EXIT_X, dz = ballPos.z - EXIT_Z;
     if (Math.sqrt(dx*dx + dz*dz) < 1.5) {
       won = true; stopTimer(); showWin();
@@ -111,6 +125,7 @@ function initGame(config) {
   board = result.board;
   wallBoxes = result.wallBoxes;
   exitMesh = result.exitMesh;
+  hazardPositions = result.hazardPositions;
 
   ball = createBall(scene, config.ballColor);
   const ctrlResult = initControls(scene, board, camera, BOARD_CX, BOARD_CZ);
