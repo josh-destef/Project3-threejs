@@ -58,8 +58,13 @@ export function initHUD() {
     clearInterval(interval);
   }
 
+<<<<<<< HEAD
   // --- Updated Minimap to show Power-Ups ---
   function updateMinimap(grid, ballPos, cols, rows) {
+=======
+  // Minimap
+  function updateMinimap(grid, ballPos, cols, rows, exitX, exitZ) {
+>>>>>>> 62bbe91b8ed24e807dc70083481f05900957e00d
     const S = 160, cw = S/cols, ch = S/rows;
     ctx.clearRect(0,0,S,S);
     for (let r=0;r<rows;r++) {
@@ -85,7 +90,9 @@ export function initHUD() {
     }
     // Exit
     ctx.fillStyle='#00cc44';
-    ctx.beginPath(); ctx.arc((cols-1)*cw+cw/2,(rows-1)*ch+ch/2,Math.min(cw,ch)*0.35,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc((exitX/CELL)*cw, (exitZ/CELL)*ch, Math.min(cw,ch)*0.35, 0, Math.PI*2); 
+    ctx.fill();
     // Ball
     if (ballPos) {
       ctx.fillStyle='#ffffff';

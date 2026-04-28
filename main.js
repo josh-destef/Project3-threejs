@@ -20,6 +20,10 @@ let controls, orbitInput;
 let won = false;
 const clock = new THREE.Clock();
 
+// store hazard positions so game loop can check them ───────────
+let hazardPositions = [];
+const HAZARD_RADIUS = 1.2;
+
 // ── Camera & HUD ──────────────────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 800);
 let orbitTheta = Math.PI * 0.15;
@@ -71,8 +75,20 @@ function animate() {
     if (controls.right) board.rotation.z = Math.max(board.rotation.z - 0.02, -0.3);
 
     const ballPos = ball.update(board, wallBoxes, delta);
-    updateMinimap(grid, ballPos, COLS, ROWS);
+    updateMinimap(grid, ballPos, COLS, ROWS, EXIT_X, EXIT_Z);
     exitMesh.rotation.y += 0.02;
+
+    // check if ball landed on any hazard tile ─────────────────
+    for (const h of hazardPositions) {
+      const dx = ballPos.x - h.x;
+      const dz = ballPos.z - h.z;
+      if (Math.sqrt(dx * dx + dz * dz) < 1.0) {
+        ball.reset();
+        board.rotation.x = 0;
+        board.rotation.z = 0;
+        break;
+      }
+    }
 
     const dx = ballPos.x - EXIT_X, dz = ballPos.z - EXIT_Z;
     if (Math.sqrt(dx*dx + dz*dz) < 1.5) {
@@ -105,14 +121,15 @@ function initGame(config) {
   }
 
   grid = generateMaze(COLS, ROWS, config.algorithm);
-  const result = buildScene(grid, EXIT_X, EXIT_Z);
+  const result = buildScene(grid, EXIT_X, EXIT_Z, config.mazeColor);
   scene = result.scene;
   renderer = result.renderer;
   board = result.board;
   wallBoxes = result.wallBoxes;
   exitMesh = result.exitMesh;
+  hazardPositions = result.hazardPositions;
 
-  ball = createBall(scene);
+  ball = createBall(scene, config.ballColor);
   const ctrlResult = initControls(scene, board, camera, BOARD_CX, BOARD_CZ);
   controls = ctrlResult.tilt;
   orbitInput = ctrlResult.orbit;
@@ -132,7 +149,9 @@ function initGame(config) {
 document.getElementById('start-btn').addEventListener('click', () => {
   initGame({
     size: document.getElementById('size-select').value,
-    goal: document.getElementById('goal-select').value
+    goal: document.getElementById('goal-select').value,
+    ballColor: document.getElementById('ball-color-select').value, 
+    mazeColor: document.getElementById('maze-color-select').value,
   });
 });
 
