@@ -5,6 +5,7 @@ import { buildScene }   from './world.js';
 import { createBall }   from './ball.js';
 import { initControls } from './controls.js';
 import { initHUD }      from './hud.js';
+import { GestureControls } from './gestureControls.js';
 
 // ── Shared Config (Variables instead of hard exports) ─────────────────────────
 export let COLS          = 14;
@@ -15,9 +16,11 @@ export const PLAYER_SPEED  = 0.09;
 export const PLAYER_RADIUS = 0.5;
 
 let BOARD_CX, BOARD_CZ, EXIT_X, EXIT_Z;
-let grid, scene, renderer, board, wallBoxes, exitMesh, ball, checkPowerUpsFn;
+let grid, scene, renderer, board, wallBoxes, exitMesh, ball, checkPowerUpsFn, handIndicators;
 let controls, orbitInput;
 let won = false;
+let currentControlMode = 'grab';
+let MAX_HAND_SIZE = 0.25;
 const clock = new THREE.Clock();
 
 // store hazard positions so game loop can check them ───────────
@@ -34,7 +37,25 @@ let targetOrbitRadius = 90;
 const MIN_PHI = THREE.MathUtils.degToRad(15);
 const MAX_PHI = THREE.MathUtils.degToRad(75);
 
-const { startTimer, stopTimer, updateMinimap, showWin, hideMenu } = initHUD();
+const { startTimer, stopTimer, updateMinimap, showWin, hideMenu, setWebcamStatus, drawHandOverlay } = initHUD();
+
+const gesture = new GestureControls();
+let gestureReady = false;
+
+gesture.init().then(() => {
+  gesture.start();
+  gestureReady = true;
+  if (setWebcamStatus) setWebcamStatus(true);
+}).catch((err) => {
+  console.warn('Webcam unavailable, using keyboard/touch controls.', err);
+});
+
+function applyKeyboardControls() {
+  if (controls.up)    board.rotation.x = Math.max(board.rotation.x - 0.02, -0.3);
+  if (controls.down)  board.rotation.x = Math.min(board.rotation.x + 0.02,  0.3);
+  if (controls.left)  board.rotation.z = Math.min(board.rotation.z + 0.02,  0.3);
+  if (controls.right) board.rotation.z = Math.max(board.rotation.z - 0.02, -0.3);
+}
 
 function updateCamera() {
   camera.position.x = BOARD_CX + orbitRadius * Math.sin(orbitPhi) * Math.sin(orbitTheta);
@@ -66,13 +87,57 @@ function animate() {
     orbitRadius = THREE.MathUtils.lerp(orbitRadius, targetOrbitRadius, 0.1);
     updateCamera();
 
-    // board.rotation.x = THREE.MathUtils.lerp(board.rotation.x, 0, 0.05);
-    // board.rotation.z = THREE.MathUtils.lerp(board.rotation.z, 0, 0.05);
+    const hands = gestureReady ? gesture.getData() : [];
+    
+    if (drawHandOverlay) drawHandOverlay(hands, currentControlMode);
 
-    if (controls.up)    board.rotation.x = Math.max(board.rotation.x - 0.02, -0.3);
-    if (controls.down)  board.rotation.x = Math.min(board.rotation.x + 0.02,  0.3);
-    if (controls.left)  board.rotation.z = Math.min(board.rotation.z + 0.02,  0.3);
-    if (controls.right) board.rotation.z = Math.max(board.rotation.z - 0.02, -0.3);
+    if (hands && hands.length > 0) {
+      let activeHands = 0;
+      let totalPushX = 0;
+      let totalPushZ = 0;
+
+      for (let i = 0; i < handIndicators.length; i++) {
+        if (hands[i]) {
+          handIndicators[i].visible = true;
+          const targetX = hands[i].x * COLS * CELL;
+          const targetZ = hands[i].y * ROWS * CELL;
+          handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
+          handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
+
+          const isActivating = currentControlMode === 'hover' ? true : hands[i].pinch;
+
+          // Colors: Left physical hand (Right in mediapipe) = Blue, Right physical hand = Green
+          const isLeftPhysical = hands[i].handedness === 'Right';
+          const inactiveColor = isLeftPhysical ? 0x0099ff : 0x00ff99;
+          const activeColor   = isLeftPhysical ? 0x00ffff : 0xffff00;
+          const color = isActivating ? activeColor : inactiveColor;
+          
+          handIndicators[i].children[0].material.color.setHex(color);
+          handIndicators[i].children[1].material.color.setHex(color);
+          
+          // Scale indicator based on physical hand proximity to camera
+          const scale = Math.max(0.5, Math.min(2.0, hands[i].size * 4)); 
+          handIndicators[i].scale.set(scale, scale, scale);
+
+          if (isActivating) {
+            activeHands++;
+            const pushMultiplier = Math.max(0.5, Math.min(3.0, (hands[i].size / MAX_HAND_SIZE) * 1.5));
+            totalPushX += (hands[i].y - 0.5) * 2 * 0.3 * pushMultiplier;
+            totalPushZ += -(hands[i].x - 0.5) * 2 * 0.3 * pushMultiplier;
+          }
+        } else {
+          handIndicators[i].visible = false;
+        }
+      }
+
+      if (activeHands > 0) {
+        board.rotation.x = THREE.MathUtils.lerp(board.rotation.x, totalPushX / activeHands, 0.2);
+        board.rotation.z = THREE.MathUtils.lerp(board.rotation.z, totalPushZ / activeHands, 0.2);
+      }
+    } else {
+      applyKeyboardControls();
+      if (handIndicators) handIndicators.forEach(h => h.visible = false);
+    }
 
     const ballPos = ball.update(board, wallBoxes, delta);
     if (checkPowerUpsFn) checkPowerUpsFn(ball);
@@ -101,6 +166,7 @@ function animate() {
 
 // ── Initialization ────────────────────────────────────────────────────────────
 function initGame(config) {
+  currentControlMode = config.controlMode || 'grab';
   // Cleanup
   if (renderer) {
     renderer.dispose();
@@ -130,6 +196,7 @@ function initGame(config) {
   exitMesh = result.exitMesh;
   hazardPositions = result.hazardPositions;
   checkPowerUpsFn = result.checkPowerUps;
+  handIndicators = result.handIndicators;
 
   ball = createBall(scene, config.ballColor);
   const ctrlResult = initControls(scene, board, camera, BOARD_CX, BOARD_CZ);
@@ -154,7 +221,34 @@ document.getElementById('start-btn').addEventListener('click', () => {
     goal: document.getElementById('goal-select').value,
     ballColor: document.getElementById('ball-color-select').value, 
     mazeColor: document.getElementById('maze-color-select').value,
+    controlMode: document.getElementById('control-mode-select').value,
   });
+});
+
+let calibInterval;
+document.getElementById('calibrate-btn').addEventListener('click', () => {
+  document.getElementById('menu').style.display = 'none';
+  document.getElementById('calibration-screen').style.display = 'flex';
+  
+  calibInterval = setInterval(() => {
+    const hands = gestureReady ? gesture.getData() : [];
+    if (hands && hands.length > 0) {
+      document.getElementById('calib-size-display').textContent = hands[0].size.toFixed(3);
+    } else {
+      document.getElementById('calib-size-display').textContent = 'No hand detected';
+    }
+  }, 100);
+});
+
+document.getElementById('calib-confirm-btn').addEventListener('click', () => {
+  const hands = gestureReady ? gesture.getData() : [];
+  if (hands && hands.length > 0) {
+    MAX_HAND_SIZE = hands[0].size;
+    console.log("Calibrated MAX_HAND_SIZE:", MAX_HAND_SIZE);
+  }
+  clearInterval(calibInterval);
+  document.getElementById('calibration-screen').style.display = 'none';
+  document.getElementById('menu').style.display = 'flex';
 });
 
 window.addEventListener('resize', () => {

@@ -47,7 +47,7 @@ canvas { display: block; width: 100vw; height: 100vh; }
 #win-screen button:hover { transform: scale(1.05); box-shadow: 0 0 20px #00ff99; }
 
 /* ── Menu ───────────────────────────────────────────────────────────────── */
-#menu {
+#menu, #calibration-screen {
   position: fixed; inset: 0;
   display: flex; align-items: center; justify-content: center;
   background: rgba(10, 10, 10, 0.6); backdrop-filter: blur(12px);
@@ -73,11 +73,68 @@ canvas { display: block; width: 100vw; height: 100vh; }
   padding: 6px 12px; font-family: monospace; outline: none;
   cursor: pointer; width: 180px;
 }
-#start-btn {
+#start-btn, #calib-confirm-btn {
   background: #e8873a; color: #000;
   border: none; padding: 14px; font-family: monospace;
   font-weight: bold; font-size: 1rem; cursor: pointer;
   letter-spacing: 0.15em; transition: 0.2s;
 }
-#start-btn:hover { background: #ffaa55; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(232, 135, 58, 0.4); }
+#start-btn:hover, #calib-confirm-btn:hover { background: #ffaa55; transform: translateY(-2px); box-shadow: 0 4px 15px rgba(232, 135, 58, 0.4); }
 
+.secondary-btn {
+  background: #333; color: #fff;
+  border: 1px solid #555; padding: 14px; font-family: monospace;
+  font-weight: bold; font-size: 1rem; cursor: pointer;
+  letter-spacing: 0.15em; transition: 0.2s;
+}
+.secondary-btn:hover { background: #444; }
+
+/* ── Webcam ─────────────────────────────────────────────────────────────── */
+#webcam-preview {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 320px;
+  height: 180px;
+  border-radius: 8px;
+  border: 2px solid rgba(255, 255, 255, 0.25);
+  object-fit: cover;
+  transform: scaleX(-1); /* mirror */
+  opacity: 0.85;
+  z-index: 10;
+  background: #000;
+  display: none; /* shown via .active class */
+}
+
+#webcam-preview.active {
+  display: block;
+}
+
+#webcam-canvas {
+  position: fixed;
+  bottom: 16px;
+  left: 16px;
+  width: 320px;
+  height: 180px;
+  border-radius: 8px;
+  pointer-events: none;
+  z-index: 11; /* Above the video */
+  transform: scaleX(-1); /* Mirror to match video */
+  display: none;
+}
+#webcam-canvas.active {
+  display: block;
+}
+
+/* HUD badge */
+.hud-badge {
+  position: fixed;
+  bottom: 208px; /* sits just above the webcam preview */
+  left: 16px;
+  font-size: 12px;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.5);
+  padding: 3px 8px;
+  border-radius: 4px;
+  z-index: 11;
+}

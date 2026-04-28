@@ -105,5 +105,62 @@ export function initHUD() {
     if (menu) menu.style.display = 'none';
   }
 
-  return { startTimer, stopTimer, updateMinimap, showWin, hideMenu };
+  function setWebcamStatus(active) {
+    document.getElementById('webcam-preview')?.classList.toggle('active', active);
+    document.getElementById('webcam-canvas')?.classList.toggle('active', active);
+    const badge = document.getElementById('webcam-badge');
+    if (badge) badge.textContent = active ? '📷 Webcam Active' : '';
+  }
+
+  function drawHandOverlay(hands, currentControlMode = 'grab') {
+    const canvas = document.getElementById('webcam-canvas');
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    
+    // Ensure canvas dimensions match css
+    if (canvas.width !== 320) canvas.width = 320;
+    if (canvas.height !== 180) canvas.height = 180;
+
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+    if (!hands || hands.length === 0) return;
+
+    for (let i = 0; i < hands.length; i++) {
+      const h = hands[i];
+      if (!h || !h.landmarks) continue;
+
+      const isActivating = currentControlMode === 'hover' ? true : h.pinch;
+      const isLeftPhysical = h.handedness === 'Right';
+      const inactiveColor = isLeftPhysical ? '#0099ff' : '#00ff99';
+      const activeColor   = isLeftPhysical ? '#00ffff' : '#ffff00';
+      const color = isActivating ? activeColor : inactiveColor;
+
+      ctx.fillStyle = color;
+      
+      // Draw all landmarks
+      for (const lm of h.landmarks) {
+        ctx.beginPath();
+        ctx.arc(lm.x * canvas.width, lm.y * canvas.height, 2, 0, 2 * Math.PI);
+        ctx.fill();
+      }
+
+      // Draw hand size text for debugging (un-mirror it so it's readable)
+      ctx.save();
+      ctx.scale(-1, 1);
+      ctx.font = "14px monospace";
+      ctx.fillStyle = "#ffffff";
+      ctx.fillText(`Hand ${i} Size: ${h.size.toFixed(3)}`, -canvas.width + 10, 20 + (i * 20));
+      ctx.restore();
+
+      // Connect thumb (4) and index finger (8)
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(h.landmarks[4].x * canvas.width, h.landmarks[4].y * canvas.height);
+      ctx.lineTo(h.landmarks[8].x * canvas.width, h.landmarks[8].y * canvas.height);
+      ctx.stroke();
+    }
+  }
+
+  return { startTimer, stopTimer, updateMinimap, showWin, hideMenu, setWebcamStatus, drawHandOverlay };
 }

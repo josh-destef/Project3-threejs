@@ -178,7 +178,32 @@ export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
     }
   }
 
+  // ── Hand Indicators ──────────────────────────────────────────────────────
+  const handIndicators = [];
+  for (let i = 0; i < 2; i++) {
+    const indicator = new THREE.Group();
+    const mesh = new THREE.Mesh(
+      new THREE.ConeGeometry(0.5, 2, 8),
+      new THREE.MeshBasicMaterial({ color: i === 0 ? 0x00ff99 : 0x0099ff, wireframe: true, transparent: true, opacity: 0.8 })
+    );
+    mesh.rotation.x = Math.PI; // point down
+    mesh.position.y = 5; // hover above the board
+    indicator.add(mesh);
+    
+    const ring = new THREE.Mesh(
+      new THREE.RingGeometry(0.8, 1.2, 16),
+      new THREE.MeshBasicMaterial({ color: i === 0 ? 0x00ff99 : 0x0099ff, side: THREE.DoubleSide, transparent: true, opacity: 0.5 })
+    );
+    ring.rotation.x = -Math.PI / 2;
+    ring.position.y = 0.1;
+    indicator.add(ring);
+
+    indicator.visible = false;
+    board.add(indicator);
+    handIndicators.push(indicator);
+  }
+
   window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
 
-  return { scene, renderer, board, wallBoxes, exitMesh, checkPowerUps, hazardPositions };
+  return { scene, renderer, board, wallBoxes, exitMesh, checkPowerUps, hazardPositions, handIndicators };
 }

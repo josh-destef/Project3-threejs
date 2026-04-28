@@ -8,6 +8,8 @@
 </head>
 <body>
   <canvas id="canvas"></canvas>
+  <video id="webcam-preview" autoplay muted playsinline aria-hidden="true"></video>
+  <canvas id="webcam-canvas"></canvas>
   <div id="menu">
     <div class="menu-content">
       <h1>MAZE_3D // INITIALIZING</h1>
@@ -24,6 +26,13 @@
           <select id="goal-select">
             <option value="corner">CORNER</option>
             <option value="center">CENTER</option>
+          </select>
+        </div>
+        <div class="option">
+          <label>CONTROL MODE</label>
+          <select id="control-mode-select">
+            <option value="grab">PINCH TO GRAB</option>
+            <option value="hover">HOVER PUSH</option>
           </select>
         </div>
         <div class="option">
@@ -48,10 +57,23 @@
           </select>
         </div>
       </div>
-      <button id="start-btn">START_GAME</button>
+      <div style="display: flex; gap: 10px;">
+        <button id="calibrate-btn" class="secondary-btn" style="flex: 1;">CALIBRATE</button>
+        <button id="start-btn" style="flex: 2;">START_GAME</button>
+      </div>
     </div>
   </div>
-  <div id="hud"></div>
+  <div id="calibration-screen" style="display: none;" class="menu-overlay">
+    <div class="menu-content">
+      <h1>CALIBRATION</h1>
+      <p id="calibration-step-text" style="color: rgba(255,255,255,0.8); line-height: 1.5;">Hold your <b style="color:#00ffff;">LEFT</b> hand at the <b>MAXIMUM</b> push depth (closest to camera) and use your other hand to click CONFIRM.</p>
+      <div style="font-size: 2.5rem; color: #00ff99; text-align: center; margin: 20px 0;" id="calib-size-display">0.000</div>
+      <button id="calib-confirm-btn">CONFIRM LEFT HAND</button>
+    </div>
+  </div>
+  <div id="hud">
+    <div id="webcam-badge" class="hud-badge"></div>
+  </div>
   <script type="module" src="/main.js"></script>
 </body>
 </html>
