@@ -3,7 +3,7 @@
 import * as THREE from 'three';
 import { COLS, ROWS, CELL, WALL_HEIGHT } from './main.js';
 
-export function buildScene(grid) {
+export function buildScene(grid, exitX, exitZ) {
   const scene = new THREE.Scene();
   scene.background = new THREE.Color(0x111111);
 
@@ -84,15 +84,31 @@ export function buildScene(grid) {
   scene.add(keyLight);
 
   const fillLight = new THREE.PointLight(0x88aaff, 0.5, 120);
-  fillLight.position.set(COLS * CELL / 2, 30, ROWS * CELL / 2);
+  fillLight.position.set(cx, 30, cz);
   scene.add(fillLight);
+
+  // ── Axis Reference Lines (Level guides) ───────────────────────────────
+  const axisSize = Math.max(COLS, ROWS) * CELL + 20;
+  const axisMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 });
+  
+  const xGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(cx - axisSize / 2, 0.02, cz),
+    new THREE.Vector3(cx + axisSize / 2, 0.02, cz)
+  ]);
+  scene.add(new THREE.Line(xGeo, axisMat));
+
+  const zGeo = new THREE.BufferGeometry().setFromPoints([
+    new THREE.Vector3(cx, 0.02, cz - axisSize / 2),
+    new THREE.Vector3(cx, 0.02, cz + axisSize / 2)
+  ]);
+  scene.add(new THREE.Line(zGeo, axisMat));
 
   // ── Exit beacon — flat green goal circle ───────────────────────────────
   const exitMesh = new THREE.Mesh(
     new THREE.CylinderGeometry(0.8, 0.8, 0.05, 32),
     new THREE.MeshLambertMaterial({ color: 0x00cc44 })
   );
-  exitMesh.position.set((COLS - 1) * CELL + CELL / 2, 0.05, (ROWS - 1) * CELL + CELL / 2);
+  exitMesh.position.set(exitX, 0.05, exitZ);
   board.add(exitMesh);
 
   const exitLight = new THREE.PointLight(0x00ff44, 2, 6);

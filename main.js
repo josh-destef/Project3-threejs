@@ -96,11 +96,16 @@ function initGame(config) {
   ROWS = parseInt(config.size);
   BOARD_CX = COLS * CELL / 2;
   BOARD_CZ = ROWS * CELL / 2;
-  EXIT_X = (COLS - 1) * CELL + CELL / 2;
-  EXIT_Z = (ROWS - 1) * CELL + CELL / 2;
+  if (config.goal === 'center') {
+    EXIT_X = Math.floor(COLS / 2) * CELL + CELL / 2;
+    EXIT_Z = Math.floor(ROWS / 2) * CELL + CELL / 2;
+  } else {
+    EXIT_X = (COLS - 1) * CELL + CELL / 2;
+    EXIT_Z = (ROWS - 1) * CELL + CELL / 2;
+  }
 
   grid = generateMaze(COLS, ROWS, config.algorithm);
-  const result = buildScene(grid);
+  const result = buildScene(grid, EXIT_X, EXIT_Z);
   scene = result.scene;
   renderer = result.renderer;
   board = result.board;
@@ -126,7 +131,8 @@ function initGame(config) {
 // ── UI Listeners ──────────────────────────────────────────────────────────────
 document.getElementById('start-btn').addEventListener('click', () => {
   initGame({
-    size: document.getElementById('size-select').value
+    size: document.getElementById('size-select').value,
+    goal: document.getElementById('goal-select').value
   });
 });
 
