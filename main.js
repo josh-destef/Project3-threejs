@@ -75,7 +75,7 @@ function animate() {
     if (controls.right) board.rotation.z = Math.max(board.rotation.z - 0.02, -0.3);
 
     const ballPos = ball.update(board, wallBoxes, delta);
-    updateMinimap(grid, ballPos, COLS, ROWS);
+    updateMinimap(grid, ballPos, COLS, ROWS, EXIT_X, EXIT_Z);
     exitMesh.rotation.y += 0.02;
 
     // check if ball landed on any hazard tile ─────────────────

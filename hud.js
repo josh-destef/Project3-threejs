@@ -40,7 +40,7 @@ export function initHUD() {
   }
 
   // Minimap
-  function updateMinimap(grid, ballPos, cols, rows) {
+  function updateMinimap(grid, ballPos, cols, rows, exitX, exitZ) {
     const S = 160, cw = S/cols, ch = S/rows;
     ctx.clearRect(0,0,S,S);
     for (let r=0;r<rows;r++) {
@@ -56,7 +56,9 @@ export function initHUD() {
     }
     // Exit
     ctx.fillStyle='#00cc44';
-    ctx.beginPath(); ctx.arc((cols-1)*cw+cw/2,(rows-1)*ch+ch/2,Math.min(cw,ch)*0.35,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); 
+    ctx.arc((exitX/CELL)*cw, (exitZ/CELL)*ch, Math.min(cw,ch)*0.35, 0, Math.PI*2); 
+    ctx.fill();
     // Ball
     if (ballPos) {
       ctx.fillStyle='#ffffff';
