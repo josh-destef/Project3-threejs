@@ -15,7 +15,7 @@ export const PLAYER_SPEED  = 0.09;
 export const PLAYER_RADIUS = 0.5;
 
 let BOARD_CX, BOARD_CZ, EXIT_X, EXIT_Z;
-let grid, scene, renderer, board, wallBoxes, exitMesh, ball;
+let grid, scene, renderer, board, wallBoxes, exitMesh, ball, checkPowerUpsFn;
 let controls, orbitInput;
 let won = false;
 const clock = new THREE.Clock();
@@ -75,6 +75,7 @@ function animate() {
     if (controls.right) board.rotation.z = Math.max(board.rotation.z - 0.02, -0.3);
 
     const ballPos = ball.update(board, wallBoxes, delta);
+    if (checkPowerUpsFn) checkPowerUpsFn(ball);
     updateMinimap(grid, ballPos, COLS, ROWS, EXIT_X, EXIT_Z);
     exitMesh.rotation.y += 0.02;
 
@@ -128,6 +129,7 @@ function initGame(config) {
   wallBoxes = result.wallBoxes;
   exitMesh = result.exitMesh;
   hazardPositions = result.hazardPositions;
+  checkPowerUpsFn = result.checkPowerUps;
 
   ball = createBall(scene, config.ballColor);
   const ctrlResult = initControls(scene, board, camera, BOARD_CX, BOARD_CZ);

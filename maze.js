@@ -64,7 +64,6 @@ export function generateMaze(cols, rows) {
 
   carve(0, 0);
 
-<<<<<<< HEAD
   // --- NEW: Power-Up Distribution ---
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -88,7 +87,5 @@ export function generateMaze(cols, rows) {
     }
   }
 
-=======
->>>>>>> 62bbe91b8ed24e807dc70083481f05900957e00d
   return grid;
 }

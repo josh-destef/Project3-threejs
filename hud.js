@@ -58,13 +58,8 @@ export function initHUD() {
     clearInterval(interval);
   }
 
-<<<<<<< HEAD
   // --- Updated Minimap to show Power-Ups ---
-  function updateMinimap(grid, ballPos, cols, rows) {
-=======
-  // Minimap
   function updateMinimap(grid, ballPos, cols, rows, exitX, exitZ) {
->>>>>>> 62bbe91b8ed24e807dc70083481f05900957e00d
     const S = 160, cw = S/cols, ch = S/rows;
     ctx.clearRect(0,0,S,S);
     for (let r=0;r<rows;r++) {

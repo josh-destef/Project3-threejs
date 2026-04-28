@@ -135,12 +135,6 @@ export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
   exitMesh.position.set(exitX, 0.05, exitZ);
   board.add(exitMesh);
 
-<<<<<<< HEAD
-  window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
-
-  return { scene, renderer, board, wallBoxes, exitMesh, checkPowerUps };
-}
-=======
   const exitLight = new THREE.PointLight(0x00ff44, 2, 6);
   exitLight.position.copy(exitMesh.position);
   exitLight.position.y += 1;
@@ -186,6 +180,5 @@ export function buildScene(grid, exitX, exitZ, mazeColor = '#888888') {
 
   window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
 
-  return { scene, renderer, board, wallBoxes, exitMesh, hazardPositions};
+  return { scene, renderer, board, wallBoxes, exitMesh, checkPowerUps, hazardPositions };
 }
->>>>>>> 62bbe91b8ed24e807dc70083481f05900957e00d
