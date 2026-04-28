@@ -378,8 +378,8 @@ let pbY = 30;
 let pbVX = 0;
 let pbVY = 0;
 
-// Dynamically inject 3D sides into the instructions cards to make them solid prisms
-document.querySelectorAll('.instructions-detailed .inst-item, .menu-content h1, #close-instructions-btn').forEach(el => {
+// Dynamically inject 3D sides into the cards and menu items to make them solid prisms
+document.querySelectorAll('.instructions-detailed .inst-item, .menu-content h1, #close-instructions-btn, .menu-options .option, #calibrate-btn, #start-btn, #how-to-play-btn').forEach(el => {
   el.style.transformStyle = 'preserve-3d';
   ['top', 'bottom', 'left', 'right'].forEach(side => {
     const face = document.createElement('div');
@@ -406,20 +406,44 @@ document.getElementById('how-to-play-btn').addEventListener('click', () => {
 document.getElementById('close-instructions-btn').addEventListener('click', () => {
   document.getElementById('instructions-screen').style.display = 'none';
   document.getElementById('menu').style.display = 'flex';
+  // Reset home menu state
+  menuZoom = 1.0;
+  menuRotX = 0;
+  menuRotY = 0;
+  lastMenuZoomDist = null;
+  lastMenuOrbitPos = null;
+  pbX = 30;
+  pbY = 30;
+  pbVX = 0;
+  pbVY = 0;
 });
 
-// Update the instructions screen with 3D tilt logic so users can test Hover Push
+// Generic loop to update 3D menu physics (used for Home and Instructions)
 setInterval(() => {
-  if (!gestureReady) return;
   const instrScreen = document.getElementById('instructions-screen');
-  if (instrScreen.style.display !== 'flex') return;
+  const mainMenu = document.getElementById('menu');
+  
+  let activeOverlay = null;
+  let ballId = 'practice-ball';
+  
+  if (instrScreen.style.display === 'flex') {
+    activeOverlay = instrScreen;
+    ballId = 'practice-ball';
+  } else if (mainMenu.style.display === 'flex' || (mainMenu.style.display === '' && getComputedStyle(mainMenu).display === 'flex')) {
+    activeOverlay = mainMenu;
+    ballId = 'practice-ball-home';
+  }
+  
+  if (!activeOverlay) return;
+  if (setWebcamStatus) setWebcamStatus(true); // Keep webcam active in menus
 
-  const hands = gesture.getData();
+  const hands = gestureReady ? gesture.getData() : [];
   drawHandOverlay(hands, 'hover');
   
-  const menuContent = instrScreen.querySelector('.menu-content');
-  const mLeft = document.getElementById('marker-left');
-  const mRight = document.getElementById('marker-right');
+  const menuContent = activeOverlay.querySelector('.menu-content');
+  const isHome = activeOverlay.id === 'menu';
+  const mLeft = document.getElementById(isHome ? 'marker-left-home' : 'marker-left');
+  const mRight = document.getElementById(isHome ? 'marker-right-home' : 'marker-right');
   if (!menuContent || !mLeft || !mRight) return;
 
   mLeft.style.display = 'none';
@@ -490,12 +514,12 @@ setInterval(() => {
       marker.style.boxShadow = `0 0 15px ${color}`;
       
       const scale = Math.max(0.5, Math.min(2.0, h.size * 4));
-      marker.style.transform = `translate(-50%, -50%) scale(${scale})`;
+      marker.style.transform = `translate(-50%, -50%) translateZ(100px) scale(${scale})`;
     }
   }
 
-  let rx = menuRotX;
-  let ry = menuRotY;
+  let rx = menuRotX + 5; // Default tilt
+  let ry = menuRotY - 5; // Default tilt
   
   if (activePushHands > 0) {
     rx += (totalPushX / activePushHands) * 15;
@@ -532,7 +556,7 @@ setInterval(() => {
   if (ny > mh - r) { ny = mh - r; pbVY *= -0.5; }
 
   // Obstacle Collision
-  const obstacles = Array.from(menuContent.querySelectorAll('.inst-item, h1, #close-instructions-btn'));
+  const obstacles = Array.from(menuContent.querySelectorAll('.inst-item, h1, #close-instructions-btn, .option, #how-to-play-btn, #calibrate-btn, #start-btn'));
   for (const obs of obstacles) {
     let ox = 0;
     let oy = 0;
@@ -582,7 +606,7 @@ setInterval(() => {
   pbX = nx;
   pbY = ny;
 
-  const pball = document.getElementById('practice-ball');
+  const pball = document.getElementById(ballId);
   if (pball) {
     pball.style.left = `${pbX}px`;
     pball.style.top = `${pbY}px`;

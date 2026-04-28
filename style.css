@@ -56,8 +56,9 @@ canvas { display: block; width: 100vw; height: 100vh; }
 .menu-content {
   background: rgba(20, 20, 20, 0.8);
   padding: 40px; border: 1px solid rgba(232, 135, 58, 0.3);
-  border-radius: 8px; width: 450px;
-  display: flex; flex-direction: column; gap: 30px;
+  border-radius: 8px; width: 550px;
+  display: flex; flex-direction: column; gap: 48px;
+  transform-style: preserve-3d;
 }
 .menu-content h1 {
   font-size: 1.2rem; color: #e8873a;
@@ -88,7 +89,10 @@ canvas { display: block; width: 100vw; height: 100vh; }
 .inst-item h3 { color: #00ff99; font-size: 1.1rem; margin-bottom: 5px; letter-spacing: 0.1em; }
 .inst-item p { color: rgba(255, 255, 255, 0.8); font-size: 0.9rem; line-height: 1.4; margin-bottom: 0; }
 
-.menu-options { display: flex; flex-direction: column; gap: 20px; }
+.menu-options { 
+  display: flex; flex-direction: column; gap: 48px; 
+  transform-style: preserve-3d;
+}
 .option { display: flex; justify-content: space-between; align-items: center; }
 .option label { font-size: 0.9rem; color: rgba(255, 255, 255, 0.6); letter-spacing: 0.1em; }
 .option select {
@@ -96,12 +100,34 @@ canvas { display: block; width: 100vw; height: 100vh; }
   padding: 6px 12px; font-family: monospace; outline: none;
   cursor: pointer; width: 180px;
 }
+/* --- 3D Prism Base Class (applied via selectors) --- */
+#start-btn, #calib-confirm-btn, #close-instructions-btn, #calibrate-btn, .option, .inst-item, .menu-content h1 {
+  border: 1px solid #444; border-radius: 0px;
+  transform: translateZ(40px);
+  box-shadow: 0 25px 35px rgba(0,0,0,0.9);
+  transform-style: preserve-3d;
+}
+
 #start-btn, #calib-confirm-btn, #close-instructions-btn {
   background: #e8873a; color: #000;
-  border: none; padding: 14px; font-family: monospace;
-  font-weight: bold; font-size: 1rem; cursor: pointer;
+  padding: 14px; font-family: monospace; font-weight: bold;
+  font-size: 1.1rem; cursor: pointer;
   letter-spacing: 0.15em; transition: 0.2s;
 }
+
+#calibrate-btn, .option, .inst-item {
+  background: rgba(20, 20, 20, 0.95); color: #fff;
+  padding: 14px; font-family: monospace; font-weight: bold;
+  font-size: 1.1rem; cursor: pointer;
+  letter-spacing: 0.15em; transition: 0.2s;
+}
+
+.option select {
+  background: #111; color: #fff; border: 1px solid #333;
+  padding: 6px 12px; font-family: monospace; outline: none;
+  cursor: pointer; width: 180px;
+}
+
 #close-instructions-btn {
   position: relative;
   transform: translateZ(40px);

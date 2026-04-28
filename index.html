@@ -11,9 +11,16 @@
   <video id="webcam-preview" autoplay muted playsinline aria-hidden="true"></video>
   <canvas id="webcam-canvas"></canvas>
   <div id="menu">
-    <div class="menu-content">
-      <h1>MAZE_3D // INITIALIZING</h1>
-      <button id="how-to-play-btn" class="secondary-btn" style="margin-bottom: 20px; width: 100%;">HOW TO PLAY // CONTROLS</button>
+    <div class="menu-content" style="width: 550px; position: relative; transform-style: preserve-3d; background: #2a1f0f; border: 2px solid #111;">
+      <div class="menu-wall mw-top"></div>
+      <div class="menu-wall mw-bottom"></div>
+      <div class="menu-wall mw-left"></div>
+      <div class="menu-wall mw-right"></div>
+      <div id="practice-ball-home" style="position: absolute; width: 24px; height: 24px; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dddddd 20%, #777777 80%, #222222 100%); border-radius: 50%; top: 30px; left: 30px; transform: translate(-50%, -50%) translateZ(12px); box-shadow: inset -4px -4px 6px rgba(0,0,0,0.8), inset 2px 2px 4px rgba(255,255,255,0.9), 0 15px 15px rgba(0,0,0,0.6); z-index: 500;"></div>
+      <div id="marker-left-home" style="position: absolute; width: 20px; height: 20px; background: #00ffff; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1000; box-shadow: 0 0 10px #00ffff;"></div>
+      <div id="marker-right-home" style="position: absolute; width: 20px; height: 20px; background: #00ff99; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1000; box-shadow: 0 0 10px #00ff99;"></div>
+      <h1>LUMINA</h1>
+      <button id="how-to-play-btn" class="secondary-btn" style="margin-bottom: 48px; width: 100%; transform: translateZ(40px); background: rgba(20,20,20,0.95); border: 1px solid #444; box-shadow: 0 25px 35px rgba(0,0,0,0.9);">HOW TO PLAY // CONTROLS</button>
       <div class="menu-options">
         <div class="option">
           <label>MODE / SIZE</label>
