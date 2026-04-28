@@ -6,12 +6,14 @@ A high-fidelity 3D maze game built with **Three.js** and **Vite**. Navigate a ba
 
 -   **Procedural Maze Generation**: Every game uses a unique layout generated via a recursive backtracker (DFS) algorithm.
 -   **Real-time Physics**: Custom manual physics engine handling gravity, momentum, friction, and AABB collision detection.
--   **Dynamic Controls**: 
-    -   **Tilt**: Interactive 3D arrow meshes allow you to tilt the board in four directions.
-    -   **Orbit**: Drag on the canvas to rotate the camera around the board for the best viewing angle.
+-   **Dynamic Hand Tracking Controls**:
+    -   **Hover Push**: Physically push the board down by holding your hands over the maze. The closer your hand is to the webcam, the harder it pushes!
+    -   **Camera Orbit**: Pinch one hand and drag to rotate your viewing angle around the 3D board.
+    -   **Pinch-to-Zoom**: Pinch both hands and pull them apart or together to seamlessly zoom into specific areas of the maze.
+    -   **Calibration**: Easily calibrate your "maximum push" distance to perfectly match your webcam and lighting setup.
 -   **Responsive HUD**:
     -   **Timer**: Track how fast you can clear the maze.
-    -   **Minimap**: A real-time 2D top-down view of your position.
+    -   **Dynamic Minimap**: A real-time 2D radar that automatically rotates to match your 3D viewing angle!
     -   **Win State**: Victory screen with final time and a "Play Again" option.
 -   **Lighting & Atmosphere**: Ambient, directional, and point lights (including a ball-following light) for a premium look.
 
@@ -44,9 +46,10 @@ A high-fidelity 3D maze game built with **Three.js** and **Vite**. Navigate a ba
 
 ## Controls
 
--   **Tilt Board**: Click/Touch and hold the **3D Orange Arrows** on the rim of the board.
--   **Rotate Camera**: Click and drag anywhere on the **empty space/background** to orbit the camera.
--   **Goal**: Navigate the white ball to the **Green Beacon** at the far corner of the maze.
+-   **Tilt Board**: Hold your hands in front of the webcam. The board acts like a see-saw—moving your hand closer to the lens acts as a heavier "weight" on that side of the maze!
+-   **Rotate Camera**: Pinch with one hand and drag left/right or up/down. The camera will orbit the board, keeping your hand movements relative to your new point of view.
+-   **Zoom Camera**: Pinch with two hands simultaneously. Moving them apart zooms in on the center of the pinch, while moving them together zooms out to the absolute center of the board.
+-   **Goal**: Navigate the white ball to the **Green Beacon** at the far corner of the maze. (Or center, depending on mode).
 
 ## Project Structure
 

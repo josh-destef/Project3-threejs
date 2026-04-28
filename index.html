@@ -13,12 +13,14 @@
   <div id="menu">
     <div class="menu-content">
       <h1>MAZE_3D // INITIALIZING</h1>
+      <button id="how-to-play-btn" class="secondary-btn" style="margin-bottom: 20px; width: 100%;">HOW TO PLAY // CONTROLS</button>
       <div class="menu-options">
         <div class="option">
-          <label>SIZE</label>
+          <label>MODE / SIZE</label>
           <select id="size-select">
-            <option value="14">14 x 14</option>
-            <option value="25">25 x 25</option>
+            <option value="practice" selected>PRACTICE - 10 x 10</option>
+            <option value="14">NORMAL - 14 x 14</option>
+            <option value="25">NORMAL - 25 x 25</option>
           </select>
         </div>
         <div class="option">
@@ -28,14 +30,14 @@
             <option value="center">CENTER</option>
           </select>
         </div>
-        <div class="option">
+        <div class="option" style="display: none;">
           <label>CONTROL MODE</label>
           <select id="control-mode-select">
-            <option value="grab">PINCH TO GRAB</option>
             <option value="hover">HOVER PUSH</option>
+            <option value="grab">PINCH TO GRAB</option>
           </select>
         </div>
-        <div class="option">
+        <div class="option" style="display: none;">
           <label>BALL COLOR</label>
           <select id="ball-color-select">
             <option value="#eeeeee">WHITE</option>
@@ -45,7 +47,7 @@
             <option value="#ffaa00">ORANGE</option>
           </select>
         </div>
-        <div class="option">
+        <div class="option" style="display: none;">
           <label>MAZE COLOR</label>
           <select id="maze-color-select">
             <option value="#c8a46e">WOOD</option>
@@ -69,6 +71,45 @@
       <p id="calibration-step-text" style="color: rgba(255,255,255,0.8); line-height: 1.5;">Hold your <b style="color:#00ffff;">LEFT</b> hand at the <b>MAXIMUM</b> push depth (closest to camera) and use your other hand to click CONFIRM.</p>
       <div style="font-size: 2.5rem; color: #00ff99; text-align: center; margin: 20px 0;" id="calib-size-display">0.000</div>
       <button id="calib-confirm-btn">CONFIRM LEFT HAND</button>
+    </div>
+  </div>
+  <div id="instructions-screen" style="display: none;" class="menu-overlay">
+    <div class="menu-content" style="width: 550px; position: relative; transform-style: preserve-3d; background: #2a1f0f; border: 2px solid #111;">
+      <div class="menu-wall mw-top"></div>
+      <div class="menu-wall mw-bottom"></div>
+      <div class="menu-wall mw-left"></div>
+      <div class="menu-wall mw-right"></div>
+      <div id="practice-ball" style="position: absolute; width: 24px; height: 24px; background: radial-gradient(circle at 30% 30%, #ffffff 0%, #dddddd 20%, #777777 80%, #222222 100%); border-radius: 50%; top: 30px; left: 30px; transform: translate(-50%, -50%) translateZ(12px); box-shadow: inset -4px -4px 6px rgba(0,0,0,0.8), inset 2px 2px 4px rgba(255,255,255,0.9), 0 15px 15px rgba(0,0,0,0.6); z-index: 500;"></div>
+      <div id="marker-left" style="position: absolute; width: 20px; height: 20px; background: #00ffff; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1000; box-shadow: 0 0 10px #00ffff;"></div>
+      <div id="marker-right" style="position: absolute; width: 20px; height: 20px; background: #00ff99; border-radius: 50%; top: 50%; left: 50%; transform: translate(-50%, -50%); display: none; pointer-events: none; z-index: 1000; box-shadow: 0 0 10px #00ff99;"></div>
+      <h1>HOW TO PLAY</h1>
+      <div class="instructions-detailed">
+        <div class="inst-item">
+          <div>
+            <h3>HOVER PUSH (TILT)</h3>
+            <p>Hold your hands over the board. To tilt the board, physically push your hand towards the webcam lens. The closer your hand gets to the camera, the harder it pushes down on that side of the maze! (Use Calibration to set your max depth).</p>
+          </div>
+        </div>
+        <div class="inst-item">
+          <div>
+            <h3>ROTATE CAMERA</h3>
+            <p>Pinch your fingers with <b>ONE</b> hand and drag. The camera will smoothly orbit around the board, allowing you to view the maze from any angle.</p>
+          </div>
+        </div>
+        <div class="inst-item">
+          <div>
+            <h3>ZOOM IN / OUT</h3>
+            <p>Pinch your fingers with <b>BOTH</b> hands simultaneously. Pull your hands apart to zoom into the specific area between your hands, or push them together to zoom out.</p>
+          </div>
+        </div>
+        <div class="inst-item">
+          <div>
+            <h3>GOAL</h3>
+            <p>Navigate the white ball to the Green Beacon at the end of the maze. Avoid landing on the glowing red hazard tiles, or you will respawn at the start!</p>
+          </div>
+        </div>
+      </div>
+      <button id="close-instructions-btn" class="secondary-btn">GOT IT</button>
     </div>
   </div>
   <div id="hud">

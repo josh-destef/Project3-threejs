@@ -59,9 +59,16 @@ export function initHUD() {
   }
 
   // --- Updated Minimap to show Power-Ups ---
-  function updateMinimap(grid, ballPos, cols, rows, exitX, exitZ) {
+  function updateMinimap(grid, ballPos, cols, rows, exitX, exitZ, orbitTheta = 0) {
     const S = 160, cw = S/cols, ch = S/rows;
     ctx.clearRect(0,0,S,S);
+    
+    ctx.save();
+    ctx.translate(S/2, S/2);
+    ctx.rotate(orbitTheta);
+    ctx.scale(0.75, 0.75); // Prevent corners from clipping when rotated
+    ctx.translate(-S/2, -S/2);
+
     for (let r=0;r<rows;r++) {
       for (let c=0;c<cols;c++) {
         const cell = grid[r][c], x=c*cw, y=r*ch;
@@ -93,6 +100,8 @@ export function initHUD() {
       ctx.fillStyle='#ffffff';
       ctx.beginPath(); ctx.arc(ballPos.x/CELL*cw, ballPos.z/CELL*ch, Math.min(cw,ch)*0.4, 0, Math.PI*2); ctx.fill();
     }
+    
+    ctx.restore();
   }
 
   function showWin() {
