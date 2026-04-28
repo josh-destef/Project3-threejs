@@ -4,7 +4,8 @@ import * as THREE from 'three';
 import { CELL, WALL_HEIGHT } from './main.js';
 
 const BALL_RADIUS = 0.5;
-const MAX_SPEED = 16;
+let currentMaxSpeed = 16; // Changed from const to let to allow speed boosts
+const DEFAULT_MAX_SPEED = 16;
 const FRICTION = 0.985;
 
 export function createBall(scene) {
@@ -21,6 +22,29 @@ export function createBall(scene) {
   const pos = { x: CELL / 2, z: CELL / 2 };
   const vel = { x: 0, z: 0 };
 
+  // --- NEW: Power-Up Methods ---
+  
+  function boostSpeed(duration = 10000) {
+    currentMaxSpeed = DEFAULT_MAX_SPEED * 2.5; // Significant boost
+    mesh.material.color.setHex(0xffaa00); // Visual cue: Orange glow
+    
+    setTimeout(() => {
+      currentMaxSpeed = DEFAULT_MAX_SPEED;
+      mesh.material.color.setHex(0xeeeeee); // Reset color
+    }, duration);
+  }
+
+  function teleport(targetX, targetZ) {
+    // Directly move the local coordinates
+    pos.x = targetX;
+    pos.z = targetZ;
+    // Kill velocity so the ball doesn't fly off instantly after TP
+    vel.x = 0;
+    vel.z = 0;
+  }
+
+  // --- End Power-Up Methods ---
+
   function update(board, wallBoxes, delta) {
     const gravX = -board.rotation.z * 25;
     const gravZ = board.rotation.x * 25;
@@ -31,7 +55,11 @@ export function createBall(scene) {
     vel.z *= FRICTION;
 
     const spd = Math.sqrt(vel.x * vel.x + vel.z * vel.z);
-    if (spd > MAX_SPEED) { vel.x = vel.x / spd * MAX_SPEED; vel.z = vel.z / spd * MAX_SPEED; }
+    // Use currentMaxSpeed instead of the old constant
+    if (spd > currentMaxSpeed) { 
+      vel.x = vel.x / spd * currentMaxSpeed; 
+      vel.z = vel.z / spd * currentMaxSpeed; 
+    }
 
     // X axis collision
     const tryX = pos.x + vel.x * delta;
@@ -61,5 +89,7 @@ export function createBall(scene) {
   }
 
   function getPos() { return pos; }
-  return { mesh, update, getPos };
+  
+  // Added boostSpeed and teleport to the returned object
+  return { mesh, update, getPos, boostSpeed, teleport };
 }

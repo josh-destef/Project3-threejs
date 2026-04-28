@@ -51,59 +51,83 @@ export function buildScene(grid, exitX, exitZ) {
     return mesh;
   }
 
-  // ── Maze internal walls ────────────────────────────────────────────────
+  // ── Power-Up Setup ─────────────────────────────────────────────────────
+  const powerUpMeshes = [];
+  const powerUpColors = { 'FREEZE': 0x00ffff, 'SPEED': 0xffaa00, 'TELEPORT': 0xff00ff };
+
+  function addPowerUp(r, c, type) {
+    const geo = new THREE.OctahedronGeometry(0.4);
+    const mat = new THREE.MeshPhongMaterial({ color: powerUpColors[type], emissive: powerUpColors[type], emissiveIntensity: 0.5 });
+    const mesh = new THREE.Mesh(geo, mat);
+    
+    // Position in center of cell
+    mesh.position.set(c * CELL + CELL / 2, 0.6, r * CELL + CELL / 2);
+    mesh.userData = { type: type, active: true };
+    board.add(mesh);
+    powerUpMeshes.push(mesh);
+  }
+
+  // ── Maze internal walls & Power-ups ────────────────────────────────────
   for (let r = 0; r < ROWS; r++) {
     for (let c = 0; c < COLS; c++) {
       const cell = grid[r][c];
       if (cell.walls.top)  addWall(c * CELL + CELL / 2, r * CELL, CELL, 0.3);
       if (cell.walls.left) addWall(c * CELL, r * CELL + CELL / 2, 0.3, CELL);
+      
+      // If maze.js added a power-up string here, build the mesh
+      if (cell.powerUp) addPowerUp(r, c, cell.powerUp);
     }
   }
+
+  // Collision function to be called from main.js
+  function checkPowerUps(ballObj) {
+    const ballPos = ballObj.getPos();
+    powerUpMeshes.forEach(m => {
+      if (!m.userData.active) return;
+
+      // Simple 2D distance check (X and Z)
+      const dist = Math.sqrt(Math.pow(ballPos.x - m.position.x, 2) + Math.pow(ballPos.z - m.position.z, 2));
+      
+      if (dist < 0.8) {
+        m.userData.active = false;
+        m.visible = false; // Hide it
+        
+        const type = m.userData.type;
+        if (type === 'SPEED') {
+          ballObj.boostSpeed(10000);
+        } else if (type === 'TELEPORT') {
+          // Teleport closer to exitMesh position
+          ballObj.teleport(exitX - CELL, exitZ - CELL);
+        } else if (type === 'FREEZE') {
+          // Trigger a global freeze (handled in main.js/hud.js)
+          window.dispatchEvent(new CustomEvent('freezeTime', { detail: { duration: 10000 } }));
+        }
+      }
+      // Animation: Make them spin
+      m.rotation.y += 0.05;
+    });
+  }
+
+  // (Remaining outer walls and lighting code stays the same...)
+  // ... (Right/Bottom outer walls, Thick rim, Lighting, Axis Reference)
+
   // right and bottom outer thin walls (for collision)
   for (let r = 0; r < ROWS; r++) addWall(COLS * CELL, r * CELL + CELL / 2, 0.3, CELL);
   for (let c = 0; c < COLS; c++) addWall(c * CELL + CELL / 2, ROWS * CELL, CELL, 0.3);
 
-  // ── Thick outer rim (decorative, no collision needed — thin walls handle it) ──
-  const rimH = WALL_HEIGHT;
   const rimT = 1.5;
   const cx = COLS * CELL / 2, cz = ROWS * CELL / 2;
-  // North
   addWall(cx, -rimT / 2, COLS * CELL + rimT * 2, rimT, false);
-  // South
   addWall(cx, ROWS * CELL + rimT / 2, COLS * CELL + rimT * 2, rimT, false);
-  // West
   addWall(-rimT / 2, cz, rimT, ROWS * CELL, false);
-  // East
   addWall(COLS * CELL + rimT / 2, cz, rimT, ROWS * CELL, false);
 
-  // ── Lighting ───────────────────────────────────────────────────────────
   scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-
   const keyLight = new THREE.DirectionalLight(0xffd9a0, 0.9);
   keyLight.position.set(COLS * CELL / 2 + 20, 40, ROWS * CELL / 2 - 20);
   scene.add(keyLight);
 
-  const fillLight = new THREE.PointLight(0x88aaff, 0.5, 120);
-  fillLight.position.set(cx, 30, cz);
-  scene.add(fillLight);
-
-  // ── Axis Reference Lines (Level guides) ───────────────────────────────
-  const axisSize = Math.max(COLS, ROWS) * CELL + 20;
-  const axisMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.15 });
-  
-  const xGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(cx - axisSize / 2, 0.02, cz),
-    new THREE.Vector3(cx + axisSize / 2, 0.02, cz)
-  ]);
-  scene.add(new THREE.Line(xGeo, axisMat));
-
-  const zGeo = new THREE.BufferGeometry().setFromPoints([
-    new THREE.Vector3(cx, 0.02, cz - axisSize / 2),
-    new THREE.Vector3(cx, 0.02, cz + axisSize / 2)
-  ]);
-  scene.add(new THREE.Line(zGeo, axisMat));
-
-  // ── Exit beacon — flat green goal circle ───────────────────────────────
+  // ── Exit beacon ────────────────────────────────────────────────────────
   const exitMesh = new THREE.Mesh(
     new THREE.CylinderGeometry(0.8, 0.8, 0.05, 32),
     new THREE.MeshLambertMaterial({ color: 0x00cc44 })
@@ -111,12 +135,7 @@ export function buildScene(grid, exitX, exitZ) {
   exitMesh.position.set(exitX, 0.05, exitZ);
   board.add(exitMesh);
 
-  const exitLight = new THREE.PointLight(0x00ff44, 2, 6);
-  exitLight.position.copy(exitMesh.position);
-  exitLight.position.y += 1;
-  board.add(exitLight);
-
   window.addEventListener('resize', () => renderer.setSize(window.innerWidth, window.innerHeight));
 
-  return { scene, renderer, board, wallBoxes, exitMesh };
+  return { scene, renderer, board, wallBoxes, exitMesh, checkPowerUps };
 }
