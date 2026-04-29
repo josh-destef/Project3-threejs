@@ -6,7 +6,7 @@ A high-fidelity, immersive 3D maze game built with **Three.js** and **MediaPipe 
 
 -   **Procedural Maze Generation**: Every game is a unique challenge generated via a recursive backtracker (DFS) algorithm with multiple difficulty sizes (Practice, Normal, Large).
 -   **Gesture-Based Interaction**:
-    -   **Pinch-to-Activate (Safety Delay)**: All major board manipulations now require a **1-second intentional hold** (pinch or hover) to prevent accidental movements. A visual progress ring provides real-time feedback.
+    -   **Pinch-to-Activate (Safety Delay)**: All major board manipulations now require a **0.6-second intentional hold** (pinch or hover) to prevent accidental movements. A visual progress ring provides real-time feedback.
     -   **Hover Push (Tilt)**: Physically push the board down by holding your hands over the maze. The closer your hand is to the webcam, the harder it pushes down on that side of the maze!
     -   **Camera Orbit**: Pinch one hand and drag to smoothly rotate your viewing angle around the 3D board.
     -   **Pinch-to-Zoom**: Pinch both hands and pull them apart or together to seamlessly zoom into specific areas of the maze.
@@ -57,14 +57,14 @@ A high-fidelity, immersive 3D maze game built with **Three.js** and **MediaPipe 
 
 ## 🎮 Controls & Gestures
 
-### The 1-Second Rule
-To prevent accidental rotations, the game features a **Confirmation Timer**. When you pinch or hover over the board, a progress ring will fill up around your fingers. Once the ring is full (after 1 second), the action becomes active.
+### The Confirmation Rule
+To prevent accidental rotations, the game features a **Confirmation Timer**. When you pinch or hover over the board, a progress ring will fill up around your fingers. Once the ring is full, the action becomes active. You can adjust this delay in the settings menu (default is **1.0 seconds**).
 
 | Action | Gesture | Description |
 | :--- | :--- | :--- |
-| **Tilt Board** | Hover or Pinch | Hold hand over the board for 1s. Move closer to the camera to push harder. |
-| **Orbit Camera** | Pinch & Drag | Pinch 1 hand for 1s in 'Hover' mode to rotate the camera view. |
-| **Zoom** | Pinch both hands | Pinch both hands for 1s. Pull apart to zoom in, push together to zoom out. |
+| **Tilt Board** | Hover or Pinch | Hold hand over the board for 0.6s. Move closer to the camera to push harder. |
+| **Orbit Camera** | Pinch & Drag | Pinch 1 hand for 0.6s in 'Hover' mode to rotate the camera view. |
+| **Zoom** | Pinch both hands | Pinch both hands for 0.6s. Pull apart to zoom in, push together to zoom out. |
 | **Reset** | Keyboard `R` | Instantly reset the ball to the starting position. |
 
 ## 📂 Project Structure

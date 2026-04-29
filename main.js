@@ -20,6 +20,7 @@ let grid, scene, renderer, board, wallBoxes, exitMesh, ball, checkPowerUpsFn, ha
 let controls, orbitInput;
 let won = false;
 let currentControlMode = 'grab';
+let activationDelay = 1.0;
 let MAX_HAND_SIZE = 0.25;
 const clock = new THREE.Clock();
 
@@ -115,22 +116,22 @@ function animate() {
             state.pinchTime += delta;
             state.hoverTime = 0;
             state.isHoverActive = false;
-            if (state.pinchTime >= 1.0) {
+            if (state.pinchTime >= activationDelay) {
               state.isRotating = true;
             }
           } else {
             state.pinchTime = 0;
             state.isRotating = false;
             state.hoverTime += delta;
-            if (state.hoverTime >= 1.0) {
+            if (state.hoverTime >= activationDelay) {
               state.isHoverActive = true;
             }
           }
           // Attach progress to the hand object for HUD rendering
           // Use the max of either pinch or hover progress for the ring
           h.pinchProgress = Math.max(
-            Math.min(1.0, state.pinchTime / 1.0),
-            Math.min(1.0, state.hoverTime / 1.0)
+            Math.min(1.0, state.pinchTime / activationDelay),
+            Math.min(1.0, state.hoverTime / activationDelay)
           );
           h.isRotating = state.isRotating;
           h.isHoverActive = state.isHoverActive;
@@ -343,6 +344,7 @@ function animate() {
 // ── Initialization ────────────────────────────────────────────────────────────
 function initGame(config) {
   currentControlMode = config.controlMode || 'grab';
+  activationDelay = parseFloat(document.getElementById('delay-select').value) || 1.0;
   // Cleanup
   if (renderer) {
     renderer.dispose();
