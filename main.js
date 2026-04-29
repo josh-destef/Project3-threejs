@@ -27,6 +27,12 @@ const clock = new THREE.Clock();
 let hazardPositions = [];
 const HAZARD_RADIUS = 1.2;
 
+// Track pinch duration for rotation activation
+let handStates = {
+  'Left': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false },
+  'Right': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false }
+};
+
 // ── Camera & HUD ──────────────────────────────────────────────────────────────
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 800);
 let orbitTheta = Math.PI * 0.15;
@@ -91,6 +97,38 @@ function animate() {
 
     const hands = gestureReady ? gesture.getData() : [];
     
+    // Process pinch timing for each hand
+    if (hands) {
+      hands.forEach(h => {
+        const state = handStates[h.handedness];
+        if (state) {
+          if (h.pinch) {
+            state.pinchTime += delta;
+            state.hoverTime = 0;
+            state.isHoverActive = false;
+            if (state.pinchTime >= 1.0) {
+              state.isRotating = true;
+            }
+          } else {
+            state.pinchTime = 0;
+            state.isRotating = false;
+            state.hoverTime += delta;
+            if (state.hoverTime >= 1.0) {
+              state.isHoverActive = true;
+            }
+          }
+          // Attach progress to the hand object for HUD rendering
+          // Use the max of either pinch or hover progress for the ring
+          h.pinchProgress = Math.max(
+            Math.min(1.0, state.pinchTime / 1.0),
+            Math.min(1.0, state.hoverTime / 1.0)
+          );
+          h.isRotating = state.isRotating;
+          h.isHoverActive = state.isHoverActive;
+        }
+      });
+    }
+    
     if (drawHandOverlay) drawHandOverlay(hands, currentControlMode);
 
     if (hands && hands.length > 0) {
@@ -98,7 +136,7 @@ function animate() {
       let totalPushX = 0;
       let totalPushZ = 0;
       
-      const pinchedHands = hands.filter(h => h.pinch);
+      const pinchedHands = hands.filter(h => h.isRotating);
 
       if (currentControlMode === 'hover' && pinchedHands.length > 0) {
         // --- CAMERA CONTROL MODE ---
@@ -170,10 +208,21 @@ function animate() {
             handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
             handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
 
-            const color = hands[i].pinch ? 0xff00ff : (hands[i].handedness === 'Right' ? 0x0099ff : 0x00ff99);
+            const color = hands[i].isRotating ? 0xff00ff : (hands[i].handedness === 'Right' ? 0x0099ff : 0x00ff99);
             handIndicators[i].children[0].material.color.setHex(color);
             handIndicators[i].children[1].material.color.setHex(color);
             
+            // Scale the ring based on progress
+            const ring = handIndicators[i].children[1];
+            if (hands[i].pinch && !hands[i].isRotating) {
+              const ringScale = 0.5 + (hands[i].pinchProgress * 0.5);
+              ring.scale.set(ringScale, ringScale, 1);
+              ring.material.opacity = 0.3 + (hands[i].pinchProgress * 0.5);
+            } else {
+              ring.scale.set(1, 1, 1);
+              ring.material.opacity = hands[i].isRotating ? 0.9 : 0.5;
+            }
+
             const scale = Math.max(0.5, Math.min(2.0, hands[i].size * 4)); 
             handIndicators[i].scale.set(scale, scale, scale);
           } else {
@@ -199,7 +248,7 @@ function animate() {
             handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
             handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
 
-            const isActivating = currentControlMode === 'hover' ? true : hands[i].pinch;
+            const isActivating = (currentControlMode === 'hover' && hands[i].isHoverActive) || hands[i].isRotating;
 
             const isLeftPhysical = hands[i].handedness === 'Right';
             const inactiveColor = isLeftPhysical ? 0x0099ff : 0x00ff99;
@@ -209,6 +258,17 @@ function animate() {
             handIndicators[i].children[0].material.color.setHex(color);
             handIndicators[i].children[1].material.color.setHex(color);
             
+            // Scale the ring based on progress
+            const ring = handIndicators[i].children[1];
+            if ((hands[i].pinch || currentControlMode === 'hover') && !isActivating) {
+              const ringScale = 0.5 + (hands[i].pinchProgress * 0.5);
+              ring.scale.set(ringScale, ringScale, 1);
+              ring.material.opacity = 0.3 + (hands[i].pinchProgress * 0.5);
+            } else {
+              ring.scale.set(1, 1, 1);
+              ring.material.opacity = isActivating ? 0.9 : 0.5;
+            }
+
             const scale = Math.max(0.5, Math.min(2.0, hands[i].size * 4)); 
             handIndicators[i].scale.set(scale, scale, scale);
 

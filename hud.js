@@ -168,6 +168,43 @@ export function initHUD() {
       ctx.moveTo(h.landmarks[4].x * canvas.width, h.landmarks[4].y * canvas.height);
       ctx.lineTo(h.landmarks[8].x * canvas.width, h.landmarks[8].y * canvas.height);
       ctx.stroke();
+
+      // --- NEW: Progress Ring for Rotation Activation ---
+      if (h.pinchProgress > 0 || h.isRotating || h.isHoverActive) {
+        const px = (h.landmarks[4].x + h.landmarks[8].x) / 2 * canvas.width;
+        const py = (h.landmarks[4].y + h.landmarks[8].y) / 2 * canvas.height;
+        const radius = 20;
+
+        // Background circle
+        ctx.beginPath();
+        ctx.arc(px, py, radius, 0, Math.PI * 2);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.2)';
+        ctx.lineWidth = 4;
+        ctx.stroke();
+
+        // Progress arc
+        if (h.pinchProgress > 0) {
+          ctx.beginPath();
+          ctx.arc(px, py, radius, -Math.PI / 2, -Math.PI / 2 + (Math.PI * 2 * h.pinchProgress));
+          ctx.strokeStyle = color;
+          ctx.lineWidth = 4;
+          ctx.lineCap = 'round';
+          if (h.isRotating) {
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+          }
+          ctx.stroke();
+          ctx.shadowBlur = 0; // Reset shadow
+        }
+
+        // Active indicator dot
+        if (h.isRotating) {
+          ctx.fillStyle = color;
+          ctx.beginPath();
+          ctx.arc(px, py, 4, 0, Math.PI * 2);
+          ctx.fill();
+        }
+      }
     }
   }
 
