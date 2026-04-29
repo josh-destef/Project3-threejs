@@ -1,69 +1,80 @@
-# Maze3D — Three.js Physics Game
+# Maze3D — Lumina Immersive Physics Maze
 
-A high-fidelity 3D maze game built with **Three.js** and **Vite**. Navigate a ball through a procedurally generated maze by tilting the game board in real-time.
+A high-fidelity, immersive 3D maze game built with **Three.js** and **MediaPipe Hand Tracking**. Navigate a ball through a procedurally generated maze using physical gestures and real-time depth-sensing controls.
 
-## Features
+## 🌟 Core Features
 
--   **Procedural Maze Generation**: Every game uses a unique layout generated via a recursive backtracker (DFS) algorithm.
--   **Real-time Physics**: Custom manual physics engine handling gravity, momentum, friction, and AABB collision detection.
--   **Dynamic Hand Tracking Controls**:
-    -   **Hover Push**: Physically push the board down by holding your hands over the maze. The closer your hand is to the webcam, the harder it pushes!
-    -   **Camera Orbit**: Pinch one hand and drag to rotate your viewing angle around the 3D board.
+-   **Procedural Maze Generation**: Every game is a unique challenge generated via a recursive backtracker (DFS) algorithm with multiple difficulty sizes (Practice, Normal, Large).
+-   **Gesture-Based Interaction**:
+    -   **Pinch-to-Activate (Safety Delay)**: All major board manipulations now require a **1-second intentional hold** (pinch or hover) to prevent accidental movements. A visual progress ring provides real-time feedback.
+    -   **Hover Push (Tilt)**: Physically push the board down by holding your hands over the maze. The closer your hand is to the webcam, the harder it pushes down on that side of the maze!
+    -   **Camera Orbit**: Pinch one hand and drag to smoothly rotate your viewing angle around the 3D board.
     -   **Pinch-to-Zoom**: Pinch both hands and pull them apart or together to seamlessly zoom into specific areas of the maze.
-    -   **Calibration**: Easily calibrate your "maximum push" distance to perfectly match your webcam and lighting setup.
--   **Responsive HUD**:
-    -   **Timer**: Track how fast you can clear the maze.
-    -   **Dynamic Minimap**: A real-time 2D radar that automatically rotates to match your 3D viewing angle!
-    -   **Win State**: Victory screen with final time and a "Play Again" option.
--   **Lighting & Atmosphere**: Ambient, directional, and point lights (including a ball-following light) for a premium look.
+    -   **Depth Calibration**: Integrated calibration system to map your hand size to the optimal "push depth" based on your webcam and room lighting.
+-   **Dynamic Game Mechanics**:
+    -   **Power-Ups**: Collect glowing beacons to trigger **Freeze Time** (stops the clock), **Speed Boost**, or **Teleport** (skips ahead).
+    -   **Hazard Tiles**: Avoid glowing red hazard zones that reset your position to the starting tile.
+    -   **3D Menu Physics**: A fully interactive 3D home screen and instruction menu with physics-based "mini-games" you can play while choosing your settings.
+-   **Advanced HUD**:
+    -   **Adaptive Minimap**: A real-time 2D radar that automatically rotates and scales to match your 3D viewing angle and zoom level.
+    -   **Hand Overlay**: Real-time webcam overlay showing your hand landmarks and gesture activation progress.
+    -   **Timer & Power-Up Indicators**: Visual feedback for active power-ups and game progress.
 
-## Getting Started
+## 🛠 Tech Stack
+
+-   **Three.js**: Immersive 3D Rendering & Geometry
+-   **MediaPipe**: AI-powered hand landmarker and gesture tracking
+-   **Vite**: High-performance development and build pipeline
+-   **Custom Physics**: Manual implementation of momentum, friction, and AABB collision detection
+-   **CSS3**: Modern "Dark Academic" UI design with glassmorphism and 3D transforms
+
+## 🚀 Getting Started
 
 ### Prerequisites
 
--   [Node.js](https://nodejs.org/) (v16+ recommended)
--   npm or yarn
+-   [Node.js](https://nodejs.org/) (v18+ recommended)
+-   A webcam for hand tracking controls
 
 ### Installation
 
-1.  Clone the repository:
+1.  **Clone the repository**:
     ```bash
     git clone https://github.com/josh-destef/Project3-threejs.git
     cd Project3-threejs
     ```
 
-2.  Install dependencies:
+2.  **Install dependencies**:
     ```bash
     npm install
     ```
 
-3.  Start the development server:
+3.  **Start the development server**:
     ```bash
     npm run dev
     ```
 
-4.  Open your browser to the URL shown in the terminal (usually `http://localhost:5173`).
+4.  **Open the game**: Navigate to `http://localhost:5173`.
 
-## Controls
+## 🎮 Controls & Gestures
 
--   **Tilt Board**: Hold your hands in front of the webcam. The board acts like a see-saw—moving your hand closer to the lens acts as a heavier "weight" on that side of the maze!
--   **Rotate Camera**: Pinch with one hand and drag left/right or up/down. The camera will orbit the board, keeping your hand movements relative to your new point of view.
--   **Zoom Camera**: Pinch with two hands simultaneously. Moving them apart zooms in on the center of the pinch, while moving them together zooms out to the absolute center of the board.
--   **Goal**: Navigate the white ball to the **Green Beacon** at the far corner of the maze. (Or center, depending on mode).
+### The 1-Second Rule
+To prevent accidental rotations, the game features a **Confirmation Timer**. When you pinch or hover over the board, a progress ring will fill up around your fingers. Once the ring is full (after 1 second), the action becomes active.
 
-## Project Structure
+| Action | Gesture | Description |
+| :--- | :--- | :--- |
+| **Tilt Board** | Hover or Pinch | Hold hand over the board for 1s. Move closer to the camera to push harder. |
+| **Orbit Camera** | Pinch & Drag | Pinch 1 hand for 1s in 'Hover' mode to rotate the camera view. |
+| **Zoom** | Pinch both hands | Pinch both hands for 1s. Pull apart to zoom in, push together to zoom out. |
+| **Reset** | Keyboard `R` | Instantly reset the ball to the starting position. |
 
--   `main.js`: Core game loop, camera management, and orchestration.
--   `maze.js`: Implementation of the recursive backtracker maze algorithm.
--   `world.js`: Scene setup, lighting, and 3D geometry construction for the board.
--   `ball.js`: Ball movement logic, collision physics, and local-to-world mapping.
--   `controls.js`: Input handling for board tilting and camera orbiting.
--   `hud.js`: UI elements for the timer, minimap, and game state.
--   `style.css`: Modern styling for the HUD and interactive overlays.
+## 📂 Project Structure
 
-## Tech Stack
+-   `main.js`: Game loop, camera management, and gesture orchestration.
+-   `gestureControls.js`: MediaPipe integration and hand state processing.
+-   `world.js`: 3D scene construction, lighting, and environment geometry.
+-   `ball.js`: Physics-based ball movement and collision logic.
+-   `maze.js`: Procedural generation algorithm and layout data.
+-   `hud.js`: UI elements, minimap rendering, and hand overlay logic.
 
--   **Three.js**: 3D Rendering & Geometry
--   **Vite**: Fast development build tool
--   **JavaScript (ES6+)**: Modular logic
--   **CSS3**: Custom UI design
+---
+Built for **Platform-Based Computing** // Villanova University

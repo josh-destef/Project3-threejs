@@ -19,6 +19,30 @@ canvas { display: block; width: 100vw; height: 100vh; }
   color: #f0c080;
 }
 
+.hud-btn, .safe-btn {
+  position: absolute;
+  top: 16px;
+  padding: 8px 16px;
+  background: rgba(20, 20, 20, 0.8);
+  color: #f0c080;
+  border: 1px solid rgba(232, 135, 58, 0.4);
+  font-family: monospace;
+  cursor: pointer;
+  pointer-events: all;
+  z-index: 200;
+  letter-spacing: 0.1em;
+  transition: 0.2s;
+}
+
+.hud-btn { right: 120px; }
+.safe-btn { left: 16px; top: 16px; z-index: 500; }
+
+.hud-btn:hover, .safe-btn:hover {
+  background: #e8873a;
+  color: #000;
+  box-shadow: 0 0 15px rgba(232, 135, 58, 0.4);
+}
+
 /* ── Minimap ─────────────────────────────────────────────────────────────── */
 #minimap {
   position: absolute; top: 16px; left: 16px;

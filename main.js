@@ -29,8 +29,8 @@ const HAZARD_RADIUS = 1.2;
 
 // Track pinch duration for rotation activation
 let handStates = {
-  'Left': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false },
-  'Right': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false }
+  'Left': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false, pinchBuffer: 0 },
+  'Right': { pinchTime: 0, hoverTime: 0, isRotating: false, isHoverActive: false, pinchBuffer: 0 }
 };
 
 // ── Camera & HUD ──────────────────────────────────────────────────────────────
@@ -103,6 +103,15 @@ function animate() {
         const state = handStates[h.handedness];
         if (state) {
           if (h.pinch) {
+            state.pinchBuffer = 0.2; // 200ms buffer
+          } else {
+            state.pinchBuffer = Math.max(0, state.pinchBuffer - delta);
+          }
+
+          // Override h.pinch with buffer
+          const effectivePinch = h.pinch || state.pinchBuffer > 0;
+
+          if (effectivePinch) {
             state.pinchTime += delta;
             state.hoverTime = 0;
             state.isHoverActive = false;
@@ -125,6 +134,7 @@ function animate() {
           );
           h.isRotating = state.isRotating;
           h.isHoverActive = state.isHoverActive;
+          h.pinch = effectivePinch; // Update h.pinch so other systems use the buffered state
         }
       });
     }
@@ -135,11 +145,16 @@ function animate() {
       let activePushHands = 0;
       let totalPushX = 0;
       let totalPushZ = 0;
+      let targetBoardRotX = 0;
+      let targetBoardRotZ = 0;
       
       const pinchedHands = hands.filter(h => h.isRotating);
+      const anyHandPinching = hands.some(h => h.pinch);
 
       if (currentControlMode === 'hover' && pinchedHands.length > 0) {
         // --- CAMERA CONTROL MODE ---
+        targetBoardRotX = 0;
+        targetBoardRotZ = 0;
         if (pinchedHands.length === 1) {
           const h = pinchedHands[0];
           if (!window.lastOrbitPos) window.lastOrbitPos = { x: h.x, y: h.y };
@@ -248,7 +263,7 @@ function animate() {
             handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
             handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
 
-            const isActivating = (currentControlMode === 'hover' && hands[i].isHoverActive) || hands[i].isRotating;
+            const isActivating = (currentControlMode === 'hover' && !anyHandPinching && hands[i].isHoverActive) || hands[i].isRotating;
 
             const isLeftPhysical = hands[i].handedness === 'Right';
             const inactiveColor = isLeftPhysical ? 0x0099ff : 0x00ff99;
@@ -284,10 +299,17 @@ function animate() {
         }
 
         if (activePushHands > 0) {
-          board.rotation.x = THREE.MathUtils.lerp(board.rotation.x, totalPushX / activePushHands, 0.2);
-          board.rotation.z = THREE.MathUtils.lerp(board.rotation.z, totalPushZ / activePushHands, 0.2);
+          targetBoardRotX = (totalPushX / activePushHands) * 0.4;
+          targetBoardRotZ = (totalPushZ / activePushHands) * 0.4;
+        } else {
+          targetBoardRotX = 0;
+          targetBoardRotZ = 0;
         }
+        
       }
+      
+      board.rotation.x = THREE.MathUtils.lerp(board.rotation.x, targetBoardRotX, 0.1);
+      board.rotation.z = THREE.MathUtils.lerp(board.rotation.z, targetBoardRotZ, 0.1);
     } else {
       applyKeyboardControls();
       if (handIndicators) handIndicators.forEach(h => h.visible = false);
@@ -427,6 +449,17 @@ document.getElementById('calib-confirm-btn').addEventListener('click', () => {
   document.getElementById('menu').style.display = 'flex';
 });
 
+document.getElementById('home-btn').addEventListener('click', () => {
+  document.getElementById('menu').style.display = 'flex';
+  if (stopTimer) stopTimer();
+});
+
+document.getElementById('reset-view-btn').addEventListener('click', () => {
+  menuZoom = 1.0;
+  menuRotX = 0;
+  menuRotY = 0;
+});
+
 let menuZoom = 1.0;
 let menuRotX = 0;
 let menuRotY = 0;
@@ -439,7 +472,7 @@ let pbVX = 0;
 let pbVY = 0;
 
 // Dynamically inject 3D sides into the cards and menu items to make them solid prisms
-document.querySelectorAll('.instructions-detailed .inst-item, .menu-content h1, #close-instructions-btn, .menu-options .option, #calibrate-btn, #start-btn, #how-to-play-btn').forEach(el => {
+document.querySelectorAll('.instructions-detailed .inst-item, .menu-content h1, #close-instructions-btn, .menu-options .option, #calibrate-btn, #start-btn, #how-to-play-btn, #home-btn').forEach(el => {
   el.style.transformStyle = 'preserve-3d';
   ['top', 'bottom', 'left', 'right'].forEach(side => {
     const face = document.createElement('div');
