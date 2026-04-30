@@ -138,7 +138,7 @@ export function initHUD() {
       const h = hands[i];
       if (!h || !h.landmarks) continue;
 
-      const isActivating = currentControlMode === 'hover' ? true : h.pinch;
+      const isActivating = currentControlMode === 'hover' ? true : h.isPinching;
       const isLeftPhysical = h.handedness === 'Right';
       const inactiveColor = isLeftPhysical ? '#0099ff' : '#00ff99';
       const activeColor   = isLeftPhysical ? '#00ffff' : '#ffff00';

@@ -99,46 +99,57 @@ function animate() {
     const hands = gestureReady ? gesture.getData() : [];
     
     // Process pinch timing for each hand
-    if (hands) {
-      hands.forEach(h => {
-        const state = handStates[h.handedness];
-        if (state) {
-          if (h.pinch) {
-            state.pinchBuffer = 0.2; // 200ms buffer
-          } else {
-            state.pinchBuffer = Math.max(0, state.pinchBuffer - delta);
-          }
+    const handMap = {};
+    if (hands) hands.forEach(h => handMap[h.handedness] = h);
 
-          // Override h.pinch with buffer
-          const effectivePinch = h.pinch || state.pinchBuffer > 0;
-
-          if (effectivePinch) {
-            state.pinchTime += delta;
-            state.hoverTime = 0;
-            state.isHoverActive = false;
-            if (state.pinchTime >= activationDelay) {
-              state.isRotating = true;
-            }
-          } else {
-            state.pinchTime = 0;
-            state.isRotating = false;
-            state.hoverTime += delta;
-            if (state.hoverTime >= activationDelay) {
-              state.isHoverActive = true;
-            }
-          }
-          // Attach progress to the hand object for HUD rendering
-          // Use the max of either pinch or hover progress for the ring
-          h.pinchProgress = Math.max(
-            Math.min(1.0, state.pinchTime / activationDelay),
-            Math.min(1.0, state.hoverTime / activationDelay)
-          );
-          h.isRotating = state.isRotating;
-          h.isHoverActive = state.isHoverActive;
-          h.pinch = effectivePinch; // Update h.pinch so other systems use the buffered state
+    ['Left', 'Right'].forEach(side => {
+      const state = handStates[side];
+      const h = handMap[side];
+      
+      if (h) {
+        if (h.pinch) {
+          state.pinchBuffer = 0.2; // 200ms buffer
+        } else {
+          state.pinchBuffer = Math.max(0, state.pinchBuffer - delta);
         }
-      });
-    }
+
+        // Use a new property to avoid modifying the raw data from GestureControls
+        const effectivePinch = h.pinch || state.pinchBuffer > 0;
+        h.isPinching = effectivePinch;
+
+        if (effectivePinch) {
+          state.pinchTime += delta;
+          state.hoverTime = 0;
+          state.isHoverActive = false;
+          if (state.pinchTime >= activationDelay) {
+            state.isRotating = true;
+          }
+        } else {
+          state.pinchTime = 0;
+          state.isRotating = false;
+          state.hoverTime += delta;
+          if (state.hoverTime >= activationDelay) {
+            state.isHoverActive = true;
+          }
+        }
+        
+        h.pinchProgress = Math.max(
+          Math.min(1.0, state.pinchTime / activationDelay),
+          Math.min(1.0, state.hoverTime / activationDelay)
+        );
+        h.isRotating = state.isRotating;
+        h.isHoverActive = state.isHoverActive;
+      } else {
+        // Hand is lost: still decay the buffer so it doesn't stay stuck!
+        state.pinchBuffer = Math.max(0, state.pinchBuffer - delta);
+        if (state.pinchBuffer <= 0) {
+          state.pinchTime = 0;
+          state.isRotating = false;
+        }
+        state.hoverTime = 0;
+        state.isHoverActive = false;
+      }
+    });
     
     if (drawHandOverlay) drawHandOverlay(hands, currentControlMode);
 
@@ -150,7 +161,7 @@ function animate() {
       let targetBoardRotZ = 0;
       
       const pinchedHands = hands.filter(h => h.isRotating);
-      const anyHandPinching = hands.some(h => h.pinch);
+      const anyHandPinching = hands.some(h => h.isPinching);
 
       if (currentControlMode === 'hover' && pinchedHands.length > 0) {
         // --- CAMERA CONTROL MODE ---
@@ -210,94 +221,98 @@ function animate() {
         }
 
         // Draw indicators in camera mode (Purple to show camera mode)
-        for (let i = 0; i < handIndicators.length; i++) {
-          if (hands[i]) {
-            handIndicators[i].visible = true;
-            const screenX = hands[i].x - 0.5;
-            const screenY = hands[i].y - 0.5;
+        ['Left', 'Right'].forEach((side, idx) => {
+          const h = handMap[side];
+          const indicator = handIndicators[idx];
+          if (h) {
+            indicator.visible = true;
+            const screenX = h.x - 0.5;
+            const screenY = h.y - 0.5;
             
             const worldOffsetX = screenX * Math.cos(orbitTheta) + screenY * Math.sin(orbitTheta);
             const worldOffsetZ = -screenX * Math.sin(orbitTheta) + screenY * Math.cos(orbitTheta);
 
             const targetX = BOARD_CX + worldOffsetX * COLS * CELL;
             const targetZ = BOARD_CZ + worldOffsetZ * ROWS * CELL;
-            handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
-            handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
+            indicator.position.x = THREE.MathUtils.lerp(indicator.position.x, targetX, 0.2);
+            indicator.position.z = THREE.MathUtils.lerp(indicator.position.z, targetZ, 0.2);
 
-            const color = hands[i].isRotating ? 0xff00ff : (hands[i].handedness === 'Right' ? 0x0099ff : 0x00ff99);
-            handIndicators[i].children[0].material.color.setHex(color);
-            handIndicators[i].children[1].material.color.setHex(color);
+            const color = h.isRotating ? 0xff00ff : (h.handedness === 'Right' ? 0x0099ff : 0x00ff99);
+            indicator.children[0].material.color.setHex(color);
+            indicator.children[1].material.color.setHex(color);
             
             // Scale the ring based on progress
-            const ring = handIndicators[i].children[1];
-            if (hands[i].pinch && !hands[i].isRotating) {
-              const ringScale = 0.5 + (hands[i].pinchProgress * 0.5);
+            const ring = indicator.children[1];
+            if (h.isPinching && !h.isRotating) {
+              const ringScale = 0.5 + (h.pinchProgress * 0.5);
               ring.scale.set(ringScale, ringScale, 1);
-              ring.material.opacity = 0.3 + (hands[i].pinchProgress * 0.5);
+              ring.material.opacity = 0.3 + (h.pinchProgress * 0.5);
             } else {
               ring.scale.set(1, 1, 1);
-              ring.material.opacity = hands[i].isRotating ? 0.9 : 0.5;
+              ring.material.opacity = h.isRotating ? 0.9 : 0.5;
             }
 
-            const scale = Math.max(0.5, Math.min(2.0, hands[i].size * 4)); 
-            handIndicators[i].scale.set(scale, scale, scale);
+            const scale = Math.max(0.5, Math.min(2.0, h.size * 4)); 
+            indicator.scale.set(scale, scale, scale);
           } else {
-            handIndicators[i].visible = false;
+            indicator.visible = false;
           }
-        }
+        });
       } else {
         // --- BOARD PUSH MODE ---
         window.lastOrbitPos = null;
         window.lastZoomDist = null;
 
-        for (let i = 0; i < handIndicators.length; i++) {
-          if (hands[i]) {
-            handIndicators[i].visible = true;
-            const screenX = hands[i].x - 0.5;
-            const screenY = hands[i].y - 0.5;
+        ['Left', 'Right'].forEach((side, idx) => {
+          const h = handMap[side];
+          const indicator = handIndicators[idx];
+          if (h) {
+            indicator.visible = true;
+            const screenX = h.x - 0.5;
+            const screenY = h.y - 0.5;
             
             const worldOffsetX = screenX * Math.cos(orbitTheta) + screenY * Math.sin(orbitTheta);
             const worldOffsetZ = -screenX * Math.sin(orbitTheta) + screenY * Math.cos(orbitTheta);
 
             const targetX = BOARD_CX + worldOffsetX * COLS * CELL;
             const targetZ = BOARD_CZ + worldOffsetZ * ROWS * CELL;
-            handIndicators[i].position.x = THREE.MathUtils.lerp(handIndicators[i].position.x, targetX, 0.2);
-            handIndicators[i].position.z = THREE.MathUtils.lerp(handIndicators[i].position.z, targetZ, 0.2);
+            indicator.position.x = THREE.MathUtils.lerp(indicator.position.x, targetX, 0.2);
+            indicator.position.z = THREE.MathUtils.lerp(indicator.position.z, targetZ, 0.2);
 
-            const isActivating = (currentControlMode === 'hover' && !anyHandPinching && hands[i].isHoverActive) || hands[i].isRotating;
+            const isActivating = (currentControlMode === 'hover' && !anyHandPinching && h.isHoverActive) || h.isRotating;
 
-            const isLeftPhysical = hands[i].handedness === 'Right';
+            const isLeftPhysical = h.handedness === 'Right';
             const inactiveColor = isLeftPhysical ? 0x0099ff : 0x00ff99;
             const activeColor   = isLeftPhysical ? 0x00ffff : 0xffff00;
             const color = isActivating ? activeColor : inactiveColor;
             
-            handIndicators[i].children[0].material.color.setHex(color);
-            handIndicators[i].children[1].material.color.setHex(color);
+            indicator.children[0].material.color.setHex(color);
+            indicator.children[1].material.color.setHex(color);
             
             // Scale the ring based on progress
-            const ring = handIndicators[i].children[1];
-            if ((hands[i].pinch || currentControlMode === 'hover') && !isActivating) {
-              const ringScale = 0.5 + (hands[i].pinchProgress * 0.5);
+            const ring = indicator.children[1];
+            if ((h.isPinching || currentControlMode === 'hover') && !isActivating) {
+              const ringScale = 0.5 + (h.pinchProgress * 0.5);
               ring.scale.set(ringScale, ringScale, 1);
-              ring.material.opacity = 0.3 + (hands[i].pinchProgress * 0.5);
+              ring.material.opacity = 0.3 + (h.pinchProgress * 0.5);
             } else {
               ring.scale.set(1, 1, 1);
               ring.material.opacity = isActivating ? 0.9 : 0.5;
             }
 
-            const scale = Math.max(0.5, Math.min(2.0, hands[i].size * 4)); 
-            handIndicators[i].scale.set(scale, scale, scale);
+            const scale = Math.max(0.5, Math.min(2.0, h.size * 4)); 
+            indicator.scale.set(scale, scale, scale);
 
             if (isActivating) {
               activePushHands++;
-              const pushMultiplier = Math.max(0.5, Math.min(3.0, (hands[i].size / MAX_HAND_SIZE) * 1.5));
+              const pushMultiplier = Math.max(0.5, Math.min(3.0, (h.size / MAX_HAND_SIZE) * 1.5));
               totalPushX += worldOffsetZ * 2 * 0.3 * pushMultiplier;
               totalPushZ += -worldOffsetX * 2 * 0.3 * pushMultiplier;
             }
           } else {
-            handIndicators[i].visible = false;
+            indicator.visible = false;
           }
-        }
+        });
 
         if (activePushHands > 0) {
           targetBoardRotX = (totalPushX / activePushHands) * 0.4;
